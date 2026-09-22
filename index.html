@@ -31,18 +31,18 @@
         .tool-btn-primary { background: #5856d6; color: white; }
         .reset { background: transparent; color: #ff3b30; border: none; margin-top: 15px; font-size: 11px; cursor: pointer; text-decoration: underline; }
 
-        /* Modal / Liste Paneli Düzeltmeleri */
+        /* Modal Kesin Düzeltme CSS */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; padding: 16px; }
-        .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; padding: 20px; text-align: left; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5ea; padding-bottom: 12px; margin-bottom: 12px; }
+        .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 500px; height: 80vh; max-height: 600px; display: flex; flex-direction: column; padding: 20px; text-align: left; box-sizing: border-box; overflow: hidden; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5ea; padding-bottom: 12px; flex-shrink: 0; }
         .modal-header h2 { margin: 0; font-size: 17px; color: #1c1c1e; }
         .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #8e8e93; line-height: 1; }
         
-        .filter-bar { display: flex; gap: 6px; padding: 4px 0 10px 0; overflow-x: auto; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
-        .filter-chip { border: 1px solid #e5e5ea; background: #f2f2f7; padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #1c1c1e; flex-shrink: 0; }
+        .filter-bar { display: flex; gap: 6px; padding: 12px 0; overflow-x: auto; flex-shrink: 0; width: 100%; -webkit-overflow-scrolling: touch; border-bottom: 1px solid #f2f2f7; }
+        .filter-chip { border: 1px solid #e5e5ea; background: #f2f2f7; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #1c1c1e; flex-shrink: 0; }
         .filter-chip.active { background: #007aff; color: white; border-color: #007aff; }
         
-        .word-list { overflow-y: auto; flex: 1; margin-top: 4px; padding-right: 4px; }
+        .word-list { overflow-y: auto; flex: 1; margin-top: 8px; padding-right: 4px; min-height: 0; }
         .word-item { padding: 12px 0; border-bottom: 1px solid #f2f2f7; display: flex; justify-content: space-between; align-items: center; }
         .word-item-title { font-weight: 700; font-size: 15px; color: #1c1c1e; }
         .word-item-sub { font-size: 12px; color: #8e8e93; margin-top: 2px; }
