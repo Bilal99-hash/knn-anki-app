@@ -11,13 +11,14 @@
         h1 { color: #1c1c1e; margin-top: 0; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
         .stats { color: #8e8e93; font-size: 13px; margin-bottom: 18px; display: flex; justify-content: space-between; font-weight: 600; }
         
+        .card-wrapper { position: relative; width: 100%; }
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
         .card:hover { border-color: #007aff; }
         .card-img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; display: block; }
         
-        /* Sağ Üst Köşeye Sabitlenmiş Telaffuz Butonu */
-        .audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; z-index: 10; box-shadow: 0 4px 10px rgba(0,122,255,0.3); transition: transform 0.1s; }
-        .audio-btn:active { transform: scale(0.9); }
+        /* Kesin Görünür Mavi Telaffuz Butonu */
+        .audio-btn { position: absolute; top: 10px; right: 10px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
+        .audio-btn:active { transform: scale(0.92); }
 
         .card-word { font-size: 28px; font-weight: 800; color: #1c1c1e; margin-bottom: 8px; }
         .card-meaning { font-size: 18px; color: #3a3a3c; margin-bottom: 8px; display: none; font-weight: 600; }
@@ -71,14 +72,16 @@
         <span>Öğrenilen: <strong id="mastered-count" style="color:#34c759;">0</strong></span>
     </div>
 
-    <div class="card" id="flashcard" onclick="showAnswer()">
+    <div class="card-wrapper">
         <button class="audio-btn" id="speak-btn" onclick="speakWord(event)" title="Telaffuzu Dinle">🔊</button>
-        <img id="card-image" class="card-img" src="" alt="Kelime Görseli" style="display:none;">
-        <div class="card-word" id="word-text">Yükleniyor...</div>
-        <div class="card-meaning" id="meaning-text"></div>
-        <div class="card-example" id="example-text"></div>
-        <div class="card-translation" id="translation-text"></div>
-        <div class="hint" id="hint-text">Cevabı Görmek İçin Tıkla (Space)</div>
+        <div class="card" id="flashcard" onclick="showAnswer()">
+            <img id="card-image" class="card-img" src="" alt="Kelime Görseli" style="display:none;">
+            <div class="card-word" id="word-text">Yükleniyor...</div>
+            <div class="card-meaning" id="meaning-text"></div>
+            <div class="card-example" id="example-text"></div>
+            <div class="card-translation" id="translation-text"></div>
+            <div class="hint" id="hint-text">Cevabı Görmek İçin Tıkla (Space)</div>
+        </div>
     </div>
 
     <button class="show-answer-btn" id="main-show-btn" onclick="showAnswer()">Cevabı Göster (Space)</button>
@@ -98,7 +101,6 @@
     <button class="reset" onclick="resetSystem()">Tüm Anki Verilerini Sıfırla</button>
 </div>
 
-<!-- Kelime Listesi Paneli (Modal) -->
 <div class="modal" id="list-modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -298,7 +300,6 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; https://images.u
         document.getElementById('anki-controls').style.display = 'none';
     }
 
-    // TELAFFUZ OKUYUCU MOTOR
     function speakWord(event) {
         if (event) event.stopPropagation();
         if (!currentCard || !currentCard.word) return;
