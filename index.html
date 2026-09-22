@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anki Pro - 1000 Kelime</title>
+    <title>Anki Pro</title>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -14,6 +14,11 @@
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
         .card:hover { border-color: #007aff; }
         .card-img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; display: block; }
+        
+        /* Sağ Üst Köşeye Sabitlenmiş Telaffuz Butonu */
+        .audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; z-index: 10; box-shadow: 0 4px 10px rgba(0,122,255,0.3); transition: transform 0.1s; }
+        .audio-btn:active { transform: scale(0.9); }
+
         .card-word { font-size: 28px; font-weight: 800; color: #1c1c1e; margin-bottom: 8px; }
         .card-meaning { font-size: 18px; color: #3a3a3c; margin-bottom: 8px; display: none; font-weight: 600; }
         .card-example { font-size: 13px; color: #007aff; background: #eef7ff; padding: 8px 12px; border-radius: 8px; display: none; font-weight: 500; margin-bottom: 6px; }
@@ -67,6 +72,7 @@
     </div>
 
     <div class="card" id="flashcard" onclick="showAnswer()">
+        <button class="audio-btn" id="speak-btn" onclick="speakWord(event)" title="Telaffuzu Dinle">🔊</button>
         <img id="card-image" class="card-img" src="" alt="Kelime Görseli" style="display:none;">
         <div class="card-word" id="word-text">Yükleniyor...</div>
         <div class="card-meaning" id="meaning-text"></div>
@@ -114,7 +120,6 @@
 <script>
     const DAILY_LIMIT = 50;
 
-    // KELİME, ANLAMI, ÖRNEK CÜMLE, CÜMLENİN TÜRKÇESİ, GÖRSEL URL
     const rawData = `
 book; kitap; I read a book every night.; Her gece bir kitap okurum.; https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&q=80
 water; su; I drink water every day.; Her gün su içerim.; https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=500&q=80
@@ -256,6 +261,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; https://images.u
         if (activeQueue.length === 0) {
             document.getElementById('card-image').style.display = 'none';
             document.getElementById('word-text').textContent = "🎉 Günlük Hedef Bitti!";
+            document.getElementById('speak-btn').style.display = 'none';
             document.getElementById('meaning-text').textContent = "Bugünün 50 kelimelik paketini başarıyla tamamladın.";
             document.getElementById('meaning-text').style.display = 'block';
             document.getElementById('example-text').style.display = 'none';
@@ -278,6 +284,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; https://images.u
         }
 
         document.getElementById('word-text').textContent = currentCard.word;
+        document.getElementById('speak-btn').style.display = 'flex';
         document.getElementById('meaning-text').textContent = currentCard.meaning;
         document.getElementById('example-text').textContent = currentCard.example ? `Örnek: ${currentCard.example}` : '';
         document.getElementById('translation-text').textContent = currentCard.translation ? `Türkçesi: ${currentCard.translation}` : '';
@@ -289,6 +296,24 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; https://images.u
         
         document.getElementById('main-show-btn').style.display = 'block';
         document.getElementById('anki-controls').style.display = 'none';
+    }
+
+    // TELAFFUZ OKUYUCU MOTOR
+    function speakWord(event) {
+        if (event) event.stopPropagation();
+        if (!currentCard || !currentCard.word) return;
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(currentCard.word);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        } else {
+            const encodedWord = encodeURIComponent(currentCard.word);
+            const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedWord}&tl=en&client=tw-ob`);
+            audio.play();
+        }
     }
 
     function showAnswer() {
