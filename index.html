@@ -14,10 +14,11 @@
         .card-wrapper { position: relative; width: 100%; }
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
         .card:hover { border-color: #007aff; }
-        .card-img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; display: block; }
+        
+        .card-icon { font-size: 72px; margin-bottom: 12px; line-height: 1; }
         
         /* Telaffuz Butonu */
-        .audio-btn { position: absolute; top: 10px; right: 10px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
+        .audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
         .audio-btn:active { transform: scale(0.92); }
 
         .card-word { font-size: 28px; font-weight: 800; color: #1c1c1e; margin-bottom: 8px; }
@@ -75,7 +76,7 @@
     <div class="card-wrapper">
         <button class="audio-btn" id="speak-btn" onclick="speakWord(event)" title="Telaffuzu Dinle">🔊</button>
         <div class="card" id="flashcard" onclick="showAnswer()">
-            <img id="card-image" class="card-img" src="" alt="Kelime Görseli" onerror="this.style.display='none'">
+            <div id="card-icon" class="card-icon">📖</div>
             <div class="card-word" id="word-text">Yükleniyor...</div>
             <div class="card-meaning" id="meaning-text"></div>
             <div class="card-example" id="example-text"></div>
@@ -122,83 +123,77 @@
 <script>
     const DAILY_LIMIT = 50;
 
-    // DİNAMİK BENZERSİZ GÖRSEL ÜRETECİ (Her kelimeye özel görsel araması)
-    function getImgUrl(word) {
-        return `https://source.unsplash.com/500x300/?${encodeURIComponent(word)}`;
-    }
-
     const rawData = `
-book; kitap; I read a book every night.; Her gece bir kitap okurum.
-water; su; I drink water every day.; Her gün su içerim.
-house; ev; My house is near the park.; Evim parkın yakınındadır.
-car; araba; He drives a red car.; O kırmızı bir araba sürer.
-phone; telefon; Where is my phone?; Telefonum nerede?
-apple; elma; An apple a day keeps the doctor away.; Günde bir elma doktoru uzak tutar.
-cat; kedi; The cat is sleeping on the sofa.; Kedi kanepede uyuyor.
-dog; köpek; The dog is running fast.; Köpek hızlı koşuyor.
-tree; ağaç; There is a big tree in the garden.; Bahçede büyük bir ağaç var.
-sun; güneş; The sun is shining today.; Bugün güneş parlıyor.
-coffee; kahve; I drink coffee every morning.; Her sabah kahve içerim.
-tea; çay; Would you like a cup of tea?; Bir fincan çay ister misiniz?
-door; kapı; Please close the door.; Lütfen kapıyı kapatın.
-room; oda; My room is clean.; Odam temizdir.
-bread; ekmek; I buy fresh bread.; Taze ekmek alırım.
-milk; süt; I drink a glass of milk.; Bir bardak süt içerim.
-chair; sandalye; Sit on the chair.; Sandalyeye otur.
-table; masa; The book is on the table.; Kitap masanın üstündedir.
-pen; kalem; Write with a pen.; Kalemle yaz.
-bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
+book; kitap; I read a book every night.; Her gece bir kitap okurum.; 📖
+water; su; I drink water every day.; Her gün su içerim.; 💧
+house; ev; My house is near the park.; Evim parkın yakınındadır.; 🏠
+car; araba; He drives a red car.; O kırmızı bir araba sürer.; 🚗
+phone; telefon; Where is my phone?; Telefonum nerede?; 📱
+apple; elma; An apple a day keeps the doctor away.; Günde bir elma doktoru uzak tutar.; 🍎
+cat; kedi; The cat is sleeping on the sofa.; Kedi kanepede uyuyor.; 🐱
+dog; köpek; The dog is running fast.; Köpek hızlı koşuyor.; 🐶
+tree; ağaç; There is a big tree in the garden.; Bahçede büyük bir ağaç var.; 🌳
+sun; güneş; The sun is shining today.; Bugün güneş parlıyor.; ☀️
+coffee; kahve; I drink coffee every morning.; Her sabah kahve içerim.; ☕
+tea; çay; Would you like a cup of tea?; Bir fincan çay ister misiniz?; 🍵
+door; kapı; Please close the door.; Lütfen kapıyı kapatın.; 🚪
+room; oda; My room is clean.; Odam temizdir.; 🛏️
+bread; ekmek; I buy fresh bread.; Taze ekmek alırım.; 🍞
+milk; süt; I drink a glass of milk.; Bir bardak süt içerim.; 🥛
+chair; sandalye; Sit on the chair.; Sandalyeye otur.; 🪑
+table; masa; The book is on the table.; Kitap masanın üstündedir.; 🪵
+pen; kalem; Write with a pen.; Kalemle yaz.; 🖊️
+bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
     `.trim();
 
     let fullWordList = [];
     const baseLines = rawData.split('\n');
     baseLines.forEach(line => {
         const p = line.split(';');
-        const w = p[0].trim();
         fullWordList.push({ 
-            word: w, 
+            word: p[0].trim(), 
             meaning: p[1].trim(), 
             example: p[2].trim(), 
             translation: p[3] ? p[3].trim() : '',
-            imageUrl: getImgUrl(w)
+            icon: p[4] ? p[4].trim() : '💡' 
         });
     });
 
     const vocabularyDatabase = [
-        ["key", "anahtar", "Where is my key?", "Anahtarım nerede?"],
-        ["bed", "yatak", "Go to bed early.", "Erkenden yatağa git."],
-        ["box", "kutu", "Open the wooden box.", "Ahşap kutuyu aç."],
-        ["glass", "bardak", "A glass of water, please.", "Bir bardak su, lütfen."],
-        ["plate", "tabak", "The plate is clean.", "Tabak temizdir."],
-        ["fork", "çatal", "Use a fork to eat.", "Yemek için çatal kullan."],
-        ["spoon", "kaşık", "A spoon for the soup.", "Çorba için bir kaşık."],
-        ["knife", "bıçak", "Be careful with the knife.", "Bıçağa dikkat et."],
-        ["hat", "şapka", "He wears a black hat.", "O siyah bir şapka takar."],
-        ["coat", "palto, mont", "Put on your coat.", "Paltonu giy."],
-        ["desk", "çalışma masası", "Study at your desk.", "Çalışma masanda çalış."],
-        ["pencil", "kurşun kalem", "Draw with a pencil.", "Kurşun kalemle çiz."],
-        ["map", "harita", "Look at the world map.", "Dünya haritasına bak."],
-        ["picture", "resim, fotoğraf", "This is a nice picture.", "Bu güzel bir resim."],
-        ["music", "müzik", "I love listening to music.", "Müzik dinlemeyi seviyorum."],
-        ["game", "oyun", "Let's play a game.", "Hadi bir oyun oynayalım."],
-        ["ball", "top", "Kick the ball.", "Topa vur."],
-        ["baby", "bebek", "The baby is sleeping.", "Bebek uyuyor."],
-        ["doctor", "doktor", "You should see a doctor.", "Bir doktora görünmelisin."],
-        ["teacher", "öğretmen", "She is a good teacher.", "O iyi bir öğretmendir."],
-        ["student", "öğrenci", "He is a hardworking student.", "O çalışkan bir öğrencidir."],
-        ["family", "aile", "I love my family.", "Ailemi seviyorum."],
-        ["father", "baba", "My father is at work.", "Babam iştedir."],
-        ["mother", "anne", "My mother cooks well.", "Annem güzel yemek pişirir."],
-        ["city", "şehir", "Istanbul is a big city.", "İstanbul büyük bir şehirdir."],
-        ["school", "okul", "Children go to school.", "Çocuklar okula gider."],
-        ["clean", "temizlemek", "Clean your room today.", "Bugün odanı temizle."],
-        ["open", "açmak", "Open the door, please.", "Lütfen kapıyı açın."],
-        ["close", "kapatmak", "Close the window.", "Pencereyi kapat."],
-        ["today", "bugün", "Today is a beautiful day.", "Bugün güzel bir gün."],
-        ["tomorrow", "yarın", "See you tomorrow.", "Yarın görüşürüz."],
-        ["yesterday", "dün", "I saw him yesterday.", "Onu dün gördüm."],
-        ["because", "çünkü", "I stayed home because it rained.", "Evde kaldım çünkü yağmur yağdı."],
-        ["if", "eğer", "Call me if you need help.", "Yardıma ihtiyacın olursa beni ara."]
+        ["key", "anahtar", "Where is my key?", "Anahtarım nerede?", "🔑"],
+        ["bed", "yatak", "Go to bed early.", "Erkenden yatağa git.", "🛏️"],
+        ["box", "kutu", "Open the wooden box.", "Ahşap kutuyu aç.", "📦"],
+        ["glass", "bardak", "A glass of water, please.", "Bir bardak su, lütfen.", "🥛"],
+        ["plate", "tabak", "The plate is clean.", "Tabak temizdir.", "🍽️"],
+        ["fork", "çatal", "Use a fork to eat.", "Yemek için çatal kullan.", "🍴"],
+        ["spoon", "kaşık", "A spoon for the soup.", "Çorba için bir kaşık.", "🥄"],
+        ["knife", "bıçak", "Be careful with the knife.", "Bıçağa dikkat et.", "🔪"],
+        ["hat", "şapka", "He wears a black hat.", "O siyah bir şapka takar.", "🧢"],
+        ["coat", "palto, mont", "Put on your coat.", "Paltonu giy.", "🧥"],
+        ["desk", "çalışma masası", "Study at your desk.", "Çalışma masanda çalış.", "🖥️"],
+        ["pencil", "kurşun kalem", "Draw with a pencil.", "Kurşun kalemle çiz.", "✏️"],
+        ["map", "harita", "Look at the world map.", "Dünya haritasına bak.", "🗺️"],
+        ["picture", "resim, fotoğraf", "This is a nice picture.", "Bu güzel bir resim.", "🖼️"],
+        ["music", "müzik", "I love listening to music.", "Müzik dinlemeyi seviyorum.", "🎵"],
+        ["game", "oyun", "Let's play a game.", "Hadi bir oyun oynayalım.", "🎮"],
+        ["ball", "top", "Kick the ball.", "Topa vur.", "⚽"],
+        ["baby", "bebek", "The baby is sleeping.", "Bebek uyuyor.", "👶"],
+        ["doctor", "doktor", "You should see a doctor.", "Bir doktora görünmelisin.", "👨‍⚕️"],
+        ["teacher", "öğretmen", "She is a good teacher.", "O iyi bir öğretmendir.", "👩‍🏫"],
+        ["student", "öğrenci", "He is a hardworking student.", "O çalışkan bir öğrencidir.", "🎓"],
+        ["family", "aile", "I love my family.", "Ailemi seviyorum.", "👨‍👩‍👧‍👦"],
+        ["father", "baba", "My father is at work.", "Babam iştedir.", "👨"],
+        ["mother", "anne", "My mother cooks well.", "Annem güzel yemek pişirir.", "👩"],
+        ["city", "şehir", "Istanbul is a big city.", "İstanbul büyük bir şehirdir.", "🏙️"],
+        ["school", "okul", "Children go to school.", "Çocuklar okula gider.", "🏫"],
+        ["clean", "temizlemek", "Clean your room today.", "Bugün odanı temizle.", "🧹"],
+        ["open", "açmak", "Open the door, please.", "Lütfen kapıyı açın.", "🔓"],
+        ["close", "kapatmak", "Close the window.", "Pencereyi kapat.", "🔒"],
+        ["today", "bugün", "Today is a beautiful day.", "Bugün güzel bir gün.", "📅"],
+        ["tomorrow", "yarın", "See you tomorrow.", "Yarın görüşürüz.", "🌅"],
+        ["yesterday", "dün", "I saw him yesterday.", "Onu dün gördüm.", "🌆"],
+        ["because", "çünkü", "I stayed home because it rained.", "Evde kaldım çünkü yağmur yağdı.", "❓"],
+        ["if", "eğer", "Call me if you need help.", "Yardıma ihtiyacın olursa beni ara.", "🔀"]
     ];
 
     vocabularyDatabase.forEach(item => {
@@ -208,12 +203,12 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
                 meaning: item[1],
                 example: item[2],
                 translation: item[3],
-                imageUrl: getImgUrl(item[0])
+                icon: item[4] || '💡'
             });
         }
     });
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_db_1000')) || {};
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_db_final')) || {};
     let activeQueue = [];
 
     fullWordList.forEach((item, idx) => {
@@ -226,7 +221,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
                 meaning: item.meaning,
                 example: item.example,
                 translation: item.translation,
-                imageUrl: item.imageUrl,
+                icon: item.icon,
                 interval: 0,
                 repetition: 0,
                 lastGrade: 0,
@@ -255,7 +250,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
     let isFlipped = false;
 
     function saveData() {
-        localStorage.setItem('knn_anki_db_1000', JSON.stringify(ankiData));
+        localStorage.setItem('knn_anki_db_final', JSON.stringify(ankiData));
     }
 
     function getMasteredCards() {
@@ -267,7 +262,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
         document.getElementById('mastered-count').textContent = getMasteredCards();
 
         if (activeQueue.length === 0) {
-            document.getElementById('card-image').style.display = 'none';
+            document.getElementById('card-icon').style.display = 'none';
             document.getElementById('word-text').textContent = "🎉 Günlük Hedef Bitti!";
             document.getElementById('speak-btn').style.display = 'none';
             document.getElementById('meaning-text').textContent = "Bugünün 50 kelimelik paketini başarıyla tamamladın.";
@@ -283,14 +278,8 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
         currentCard = activeQueue[0];
         isFlipped = false;
 
-        const imgElement = document.getElementById('card-image');
-        if (currentCard.imageUrl) {
-            imgElement.src = currentCard.imageUrl;
-            imgElement.style.display = 'block';
-        } else {
-            imgElement.style.display = 'none';
-        }
-
+        document.getElementById('card-icon').textContent = currentCard.icon || '💡';
+        document.getElementById('card-icon').style.display = 'block';
         document.getElementById('word-text').textContent = currentCard.word;
         document.getElementById('speak-btn').style.display = 'flex';
         document.getElementById('meaning-text').textContent = currentCard.meaning;
@@ -444,8 +433,8 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
     });
 
     function resetSystem() {
-        if (confirm("1000 kelimelik sistem sıfırlanacak. Emin misin?")) {
-            localStorage.removeItem('knn_anki_db_1000');
+        if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {
+            localStorage.removeItem('knn_anki_db_final');
             location.reload();
         }
     }
