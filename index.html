@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KNN Anki Pro - Aralıklı Tekrar Sistemi</title>
+    <title>KNN Anki Pro - Akıllı Tekrar & Liste</title>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .app-container { background: white; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 24px; text-align: center; }
+        .app-container { background: white; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 24px; text-align: center; position: relative; }
         h1 { color: #1c1c1e; margin-top: 0; font-size: 22px; font-weight: 700; }
         .stats { color: #8e8e93; font-size: 13px; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: 600; }
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; }
@@ -26,9 +26,30 @@
         .btn-easy { background-color: #34c759; }
 
         .show-answer-btn { background: #007aff; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; width: 100%; margin-top: 20px; cursor: pointer; }
-        .tools { display: flex; gap: 8px; margin-top: 20px; justify-content: center; }
-        .tool-btn { background: #e5e5ea; color: #1c1c1e; border: none; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; }
-        .reset { background: transparent; color: #ff3b30; border: none; margin-top: 10px; font-size: 11px; cursor: pointer; text-decoration: underline; }
+        .tools { display: flex; gap: 8px; margin-top: 15px; justify-content: center; flex-wrap: wrap; }
+        .tool-btn { background: #e5e5ea; color: #1c1c1e; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .tool-btn-primary { background: #5856d6; color: white; }
+        .reset { background: transparent; color: #ff3b30; border: none; margin-top: 15px; font-size: 11px; cursor: pointer; text-decoration: underline; }
+
+        /* Modal / Liste Paneli */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; padding: 20px; }
+        .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 500px; max-height: 80vh; display: flex; flex-direction: column; padding: 20px; text-align: left; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5ea; padding-bottom: 10px; }
+        .modal-header h2 { margin: 0; font-size: 18px; }
+        .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #8e8e93; }
+        .filter-bar { display: flex; gap: 4px; margin: 12px 0; overflow-x: auto; padding-bottom: 4px; }
+        .filter-chip { border: 1px solid #e5e5ea; background: #f2f2f7; padding: 6px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .filter-chip.active { background: #007aff; color: white; border-color: #007aff; }
+        .word-list { overflow-y: auto; flex: 1; margin-top: 8px; }
+        .word-item { padding: 10px; border-bottom: 1px solid #f2f2f7; display: flex; justify-content: space-between; align-items: center; }
+        .word-item-title { font-weight: 700; font-size: 15px; }
+        .word-item-sub { font-size: 12px; color: #8e8e93; }
+        .badge { font-size: 10px; padding: 3px 6px; border-radius: 6px; color: white; font-weight: 700; }
+        .badge-1 { background: #ff3b30; }
+        .badge-2 { background: #ff9500; }
+        .badge-3 { background: #007aff; }
+        .badge-4 { background: #34c759; }
+        .badge-0 { background: #8e8e93; }
     </style>
 </head>
 <body>
@@ -50,19 +71,41 @@
     <button class="show-answer-btn" id="main-show-btn" onclick="showAnswer()">Cevabı Göster (Space)</button>
 
     <div class="anki-buttons" id="anki-controls">
-        <button class="anki-btn btn-again" onclick="processAnki(1)">Yeniden (1)<br><small>&lt;1 dk</small></button>
+        <button class="anki-btn btn-again" onclick="processAnki(1)">Yeniden (1)<br><small>Hemen</small></button>
         <button class="anki-btn btn-hard" onclick="processAnki(2)">Zor (2)<br><small>1 gün</small></button>
         <button class="anki-btn btn-good" onclick="processAnki(3)">İyi (3)<br><small>3 gün</small></button>
         <button class="anki-btn btn-easy" onclick="processAnki(4)">Kolay (4)<br><small>7 gün</small></button>
     </div>
 
     <div class="tools">
-        <button class="tool-btn" onclick="exportData()">Yedeği İndir (PC-Mobil Geçişi)</button>
+        <button class="tool-btn tool-btn-primary" onclick="openListModal()">📋 Kelime Listesi & Filtreler</button>
+        <button class="tool-btn" onclick="exportData()">Yedeği İndir</button>
         <button class="tool-btn" onclick="importData()">Yedek Yükle</button>
     </div>
     <input type="file" id="file-input" style="display:none" onchange="handleFileLoad(event)">
 
     <button class="reset" onclick="resetSystem()">Tüm Anki Verilerini Sıfırla</button>
+</div>
+
+<!-- Kelime Listesi Paneli (Modal) -->
+<div class="modal" id="list-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Günün Kelime Ayrıştırma Listesi</h2>
+            <button class="close-btn" onclick="closeListModal()">&times;</button>
+        </div>
+        <div class="filter-bar">
+            <button class="filter-chip active" onclick="filterList('all', this)">Tümü</button>
+            <button class="filter-chip" onclick="filterList(1, this)">🔴 Yeniden (1)</button>
+            <button class="filter-chip" onclick="filterList(2, this)">🟠 Zor (2)</button>
+            <button class="filter-chip" onclick="filterList(3, this)">🔵 İyi (3)</button>
+            <button class="filter-chip" onclick="filterList(4, this)">🟢 Kolay (4)</button>
+            <button class="filter-chip" onclick="filterList(0, this)">⚪ Bakılmadı</button>
+        </div>
+        <div class="word-list" id="modal-word-container">
+            <!-- Kelimeler JS ile buraya yüklenecek -->
+        </div>
+    </div>
 </div>
 
 <script>
@@ -181,6 +224,7 @@ us; bize, bizi; Join us for lunch.
                 example: parts[2] ? parts[2].trim() : '',
                 interval: 0,
                 repetition: 0,
+                lastGrade: 0, // Son verilen derece (0: Bakılmadı, 1: Yeniden, 2: Zor, 3: İyi, 4: Kolay)
                 ease: 2.5,
                 dueDate: Date.now()
             };
@@ -215,7 +259,7 @@ us; bize, bizi; Join us for lunch.
             document.getElementById('meaning-text').textContent = "Bugünün tüm Anki tekrarlarını tamamladın.";
             document.getElementById('meaning-text').style.display = 'block';
             document.getElementById('example-text').style.display = 'none';
-            document.getElementById('hint-text').textContent = "Yeni tekrarlar vakti geldiğinde burada görünecek.";
+            document.getElementById('hint-text').textContent = "Aşağıdaki 'Kelime Listesi' butonundan verdiğin derecelere göz atabilirsin.";
             document.getElementById('main-show-btn').style.display = 'none';
             document.getElementById('anki-controls').style.display = 'none';
             return;
@@ -253,11 +297,12 @@ us; bize, bizi; Join us for lunch.
 
         const ONE_DAY = 24 * 60 * 60 * 1000;
         let card = ankiData[currentCard.id];
+        card.lastGrade = grade; // Verilen puanı kaydet
 
         if (grade === 1) {
             card.repetition = 0;
             card.interval = 0;
-            card.dueDate = Date.now() + (60 * 1000);
+            card.dueDate = Date.now(); 
         } else {
             if (grade === 2) {
                 card.interval = card.interval === 0 ? 1 : card.interval * 1.2;
@@ -273,7 +318,53 @@ us; bize, bizi; Join us for lunch.
         }
 
         saveData();
+
+        if (grade === 1) {
+            const dueList = getDueCards();
+            if (dueList.length > 1) {
+                delete ankiData[currentCard.id];
+                ankiData[currentCard.id] = card;
+                saveData();
+            }
+        }
+
         renderNextCard();
+    }
+
+    // Modal & Liste Fonksiyonları
+    function openListModal() {
+        document.getElementById('list-modal').style.display = 'flex';
+        filterList('all', document.querySelector('.filter-chip'));
+    }
+
+    function closeListModal() {
+        document.getElementById('list-modal').style.display = 'none';
+    }
+
+    function filterList(filter, btn) {
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const container = document.getElementById('modal-word-container');
+        container.innerHTML = '';
+
+        const labelMap = { 0: 'Bakılmadı', 1: 'Yeniden', 2: 'Zor', 3: 'İyi', 4: 'Kolay' };
+
+        Object.values(ankiData).forEach(item => {
+            const grade = item.lastGrade || 0;
+            if (filter === 'all' || grade === filter) {
+                const div = document.createElement('div');
+                div.className = 'word-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="word-item-title">${item.word}</div>
+                        <div class="word-item-sub">${item.meaning}</div>
+                    </div>
+                    <span class="badge badge-${grade}">${labelMap[grade]}</span>
+                `;
+                container.appendChild(div);
+            }
+        });
     }
 
     document.addEventListener('keydown', function(e) {
