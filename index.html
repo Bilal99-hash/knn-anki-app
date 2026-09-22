@@ -15,7 +15,7 @@
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
         .card:hover { border-color: #007aff; }
         
-        /* Görsel İkon Başlangıçta Gizli (Cevap Açılınca Görünecek) */
+        /* Görsel İkon Başlangıçta Tamamen Gizli */
         .card-icon { font-size: 80px; margin-bottom: 12px; line-height: 1; display: none; }
         
         .audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
@@ -211,7 +211,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         }
     });
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_fsrs_v7')) || {};
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_fsrs_v8')) || {};
     let activeQueue = [];
 
     fullWordList.forEach((item, idx) => {
@@ -254,7 +254,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
     let isFlipped = false;
 
     function saveData() {
-        localStorage.setItem('knn_anki_fsrs_v7', JSON.stringify(ankiData));
+        localStorage.setItem('knn_anki_fsrs_v8', JSON.stringify(ankiData));
     }
 
     function getMasteredCards() {
@@ -283,7 +283,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         isFlipped = false;
 
         document.getElementById('card-icon').textContent = currentCard.icon || '💡';
-        document.getElementById('card-icon').style.display = 'none'; // Başlangıçta ikon gizli
+        document.getElementById('card-icon').style.display = 'none'; // Başlangıçta tam gizli
         document.getElementById('word-text').textContent = currentCard.word;
         document.getElementById('speak-btn').style.display = 'flex';
         document.getElementById('meaning-text').textContent = currentCard.meaning;
@@ -316,7 +316,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         if (!currentCard || isFlipped) return;
         isFlipped = true;
 
-        // Cevap açıldığında ikon ve yazılar gösteriliyor
+        // Cevap açıldığında görsel ikon gösterilir
         document.getElementById('card-icon').style.display = 'block';
         document.getElementById('meaning-text').style.display = 'block';
         if (currentCard.example) document.getElementById('example-text').style.display = 'block';
@@ -471,7 +471,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
 
     function resetSystem() {
         if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {
-            localStorage.removeItem('knn_anki_fsrs_v7');
+            localStorage.removeItem('knn_anki_fsrs_v8');
             location.reload();
         }
     }
