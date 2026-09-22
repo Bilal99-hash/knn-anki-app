@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNN Anki Pro - Aralıklı Tekrar Sistemi</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .app-container { background: white; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 24px; text-align: center; }
+        h1 { color: #1c1c1e; margin-top: 0; font-size: 22px; font-weight: 700; }
+        .stats { color: #8e8e93; font-size: 13px; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: 600; }
+        .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 230px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; }
+        .card:hover { border-color: #007aff; }
+        .card-word { font-size: 32px; font-weight: 800; color: #1c1c1e; margin-bottom: 12px; }
+        .card-meaning { font-size: 19px; color: #3a3a3c; margin-bottom: 12px; display: none; font-weight: 600; }
+        .card-example { font-size: 13px; color: #34c759; background: #e8f8ec; padding: 8px 12px; border-radius: 8px; display: none; font-weight: 500; }
+        .hint { font-size: 12px; color: #8e8e93; position: absolute; bottom: 12px; }
+        
+        .anki-buttons { display: none; gap: 8px; margin-top: 20px; }
+        .anki-btn { flex: 1; border: none; padding: 12px 6px; border-radius: 10px; color: white; font-weight: 700; font-size: 13px; cursor: pointer; transition: opacity 0.2s; }
+        .anki-btn:active { opacity: 0.7; }
+        .btn-again { background-color: #ff3b30; }
+        .btn-hard { background-color: #ff9500; }
+        .btn-good { background-color: #007aff; }
+        .btn-easy { background-color: #34c759; }
+
+        .show-answer-btn { background: #007aff; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; width: 100%; margin-top: 20px; cursor: pointer; }
+        .tools { display: flex; gap: 8px; margin-top: 20px; justify-content: center; }
+        .tool-btn { background: #e5e5ea; color: #1c1c1e; border: none; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; }
+        .reset { background: transparent; color: #ff3b30; border: none; margin-top: 10px; font-size: 11px; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>KNN Anki Akıllı Tekrar</h1>
+    <div class="stats">
+        <span>Kalan Kart: <strong id="due-count" style="color:#007aff;">0</strong></span>
+        <span>Öğrenilen: <strong id="mastered-count" style="color:#34c759;">0</strong></span>
+    </div>
+
+    <div class="card" id="flashcard" onclick="showAnswer()">
+        <div class="card-word" id="word-text">Yükleniyor...</div>
+        <div class="card-meaning" id="meaning-text"></div>
+        <div class="card-example" id="example-text"></div>
+        <div class="hint" id="hint-text">Cevabı Görmek İçin Tıkla (Space)</div>
+    </div>
+
+    <button class="show-answer-btn" id="main-show-btn" onclick="showAnswer()">Cevabı Göster (Space)</button>
+
+    <div class="anki-buttons" id="anki-controls">
+        <button class="anki-btn btn-again" onclick="processAnki(1)">Yeniden (1)<br><small>Hemen</small></button>
+        <button class="anki-btn btn-hard" onclick="processAnki(2)">Zor (2)<br><small>1 gün</small></button>
+        <button class="anki-btn btn-good" onclick="processAnki(3)">İyi (3)<br><small>3 gün</small></button>
+        <button class="anki-btn btn-easy" onclick="processAnki(4)">Kolay (4)<br><small>7 gün</small></button>
+    </div>
+
+    <div class="tools">
+        <button class="tool-btn" onclick="exportData()">Yedeği İndir (PC-Mobil Geçişi)</button>
+        <button class="tool-btn" onclick="importData()">Yedek Yükle</button>
+    </div>
+    <input type="file" id="file-input" style="display:none" onchange="handleFileLoad(event)">
+
+    <button class="reset" onclick="resetSystem()">Tüm Anki Verilerini Sıfırla</button>
+</div>
+
+<script>
+    const rawData = `
+the; -i hali, belirteç (tanımlık); the book (o kitap), the car (o araba)
+be; olmak, bulunmak (am/is/are/was/were); I am at home right now.
+to; -e/-a yönelme eki, amacıyla; I go to work every morning.
+of; -in/-ın aitlik eki; the color of the car (arabanın rengi)
+and; ve (bağlaç); I need time and money.
+a; bir (herhangi bir nesne); I need a notebook.
+in; içinde, -de/-da; I am in the office.
+have; sahip olmak, yapmak; I have a question.
+I; ben (özne); I work every day.
+it; o (cansız/hayvan özne); It works well.
+for; için, amacıyla; This is for you.
+not; değil, olumsuzluk eki; I am not tired.
+on; üzerinde, -de/-da; The book is on the desk.
+with; ile, birlikte; I am eating with a spoon.
+he; o (erkek özne); He called me yesterday.
+as; olarak, gibi; As far as I know (Bildiğim kadarıyla).
+you; sen, siz; You can do it.
+do; yapmak (genel eylemler); I do my best.
+at; -de/-da (konum/zaman); I am at home at 9 o'clock.
+this; bu; This is my new computer.
+but; ama, fakat; I want to go, but I am busy.
+his; onun (erkek aitlik); His car is fast.
+by; tarafından, ile (vasıta); I go to work by bus.
+from; -den/-dan ayrılma eki; I am from Istanbul.
+they; onlar; They are coming now.
+we; biz; We will start later.
+say; söylemek, demek; What did you say?
+her; onun (kadın aitlik) / ona-onu; I called her yesterday.
+she; o (kadın özne); She lives in Turkey.
+or; veya, ya da; Yes or no?
+an; bir (sesli harfle başlayanlar için); I eat an apple.
+will; -ecek/-acak (gelecek zaman kipi); I will call you tomorrow.
+my; benim; My phone is ringing.
+one; bir, bir tanesi; I need one coffee.
+all; hepsi, tümü; All students are here.
+would; -er/ar dı, -ecekti (istek/varsayım); I would like to order.
+there; orada, var (there is/are); There is a problem.
+their; onların (aitlik); Their car is outside.
+what; ne, neyi; What are you doing?
+so; bu yüzden, yani, çok; I was tired, so I slept.
+up; yukarı, uyanık/ayakta; Stand up please.
+out; dışarı, dışarıda; I am going out.
+if; eğer, şayet; If you need help, call me.
+about; hakkında, yaklaşık; Talk about work.
+who; kim, ki o; Who is that man?
+get; almak, ulaşmak, olmak (joker fiil); I get an email every day.
+which; hangi, hangisi; Which one do you want?
+go; gitmek; I go to the office by bus.
+me; bana, beni; Can you help me?
+when; ne zaman, -dığı zaman; When will you come?
+make; yapmak, oluşturmak; I make coffee every morning.
+can; -ebilmek (yetenek/izin); I can do this.
+like; sevmek, gibi; I like this song.
+time; zaman, vakit, kere; I don't have time right now.
+no; hayır, hiç; No problem at all.
+just; sadece, az önce; I just arrived home.
+him; ona, onu (erkek); I saw him at the office.
+know; bilmek, tanımak; I know the answer.
+take; almak, zaman almak; Take your time.
+people; insanlar, halk; People are waiting outside.
+into; içine, içeriye; Walk into the room.
+year; yıl, sene; I will start next year.
+your; senin, sizin; What is your name?
+good; iyi, güzel; This is a good idea.
+some; biraz, bazı; I need some water.
+could; -ebilirdi, -ebilmek (kibar istek); Could you help me?
+them; onlara, onları; I invited them to my house.
+see; görmek, anlamak; I see what you mean.
+other; diğer, başka; Do you have another option?
+than; -den/-dan (karşılaştırma); Faster than before.
+then; sonra, o zaman; First work, then play.
+now; şimdi, şu an; I am working right now.
+look; bakmak, gibi görünmek; Look at this picture.
+only; sadece, yalnızca; I only have 10 minutes.
+come; gelmek; Come home early.
+its; onun (cansız/hayvan aitlik); Its color is red.
+over; üzerinde, bitti/tamamlandı; Game is over.
+think; düşünmek, sanmak; I think this is correct.
+also; ayrıca, de/da; I also need a pen.
+back; geri, arka; I will be back soon.
+after; sonra; After work, I go home.
+use; kullanmak; I use a computer at work.
+two; iki; I have two questions.
+how; nasıl; How are you doing?
+our; bizim; Our office is in the city.
+work; çalışmak, iş; I work at home.
+first; ilk, birinci; This is my first time.
+well; iyi, pekala; I speak English well.
+way; yol, yöntem; What is the best way?
+even; hatta, bile; Even if it rains, I will go.
+new; yeni; I bought a new car.
+want; istemek; I want a cup of tea.
+because; çünkü; I stayed home because it rained.
+any; hiç, herhangi bir; Do you have any questions?
+these; bunlar; These books are mine.
+give; vermek; Give me five minutes.
+day; gün; Have a good day.
+most; en çok, çoğu; Most people like this.
+us; bize, bizi; Join us for lunch.
+    `.trim();
+
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_db')) || {};
+
+    rawData.split('\n').forEach((line, idx) => {
+        const parts = line.split(';');
+        const id = 'card_' + idx;
+        if (!ankiData[id]) {
+            ankiData[id] = {
+                id: id,
+                word: parts[0] ? parts[0].trim() : '',
+                meaning: parts[1] ? parts[1].trim() : '',
+                example: parts[2] ? parts[2].trim() : '',
+                interval: 0,
+                repetition: 0,
+                ease: 2.5,
+                dueDate: Date.now()
+            };
+        }
+    });
+
+    saveData();
+
+    let currentCard = null;
+    let isFlipped = false;
+
+    function saveData() {
+        localStorage.setItem('knn_anki_db', JSON.stringify(ankiData));
+    }
+
+    function getDueCards() {
+        const now = Date.now();
+        return Object.values(ankiData).filter(c => c.dueDate <= now);
+    }
+
+    function getMasteredCards() {
+        return Object.values(ankiData).filter(c => c.interval >= 7).length;
+    }
+
+    function renderNextCard() {
+        const dueList = getDueCards();
+        document.getElementById('due-count').textContent = dueList.length;
+        document.getElementById('mastered-count').textContent = getMasteredCards();
+
+        if (dueList.length === 0) {
+            document.getElementById('word-text').textContent = "🎉 Harika!";
+            document.getElementById('meaning-text').textContent = "Bugünün tüm Anki tekrarlarını tamamladın.";
+            document.getElementById('meaning-text').style.display = 'block';
+            document.getElementById('example-text').style.display = 'none';
+            document.getElementById('hint-text').textContent = "Yeni tekrarlar vakti geldiğinde burada görünecek.";
+            document.getElementById('main-show-btn').style.display = 'none';
+            document.getElementById('anki-controls').style.display = 'none';
+            return;
+        }
+
+        currentCard = dueList[0];
+        isFlipped = false;
+
+        document.getElementById('word-text').textContent = currentCard.word;
+        document.getElementById('meaning-text').textContent = currentCard.meaning;
+        document.getElementById('example-text').textContent = currentCard.example ? `Örnek: ${currentCard.example}` : '';
+        
+        document.getElementById('meaning-text').style.display = 'none';
+        document.getElementById('example-text').style.display = 'none';
+        document.getElementById('hint-text').textContent = "Cevabı Görmek İçin Tıkla (Space)";
+        
+        document.getElementById('main-show-btn').style.display = 'block';
+        document.getElementById('anki-controls').style.display = 'none';
+    }
+
+    function showAnswer() {
+        if (!currentCard || isFlipped) return;
+        isFlipped = true;
+
+        document.getElementById('meaning-text').style.display = 'block';
+        if (currentCard.example) document.getElementById('example-text').style.display = 'block';
+        document.getElementById('hint-text').textContent = "Klavye: 1 (Yeniden), 2 (Zor), 3 (İyi), 4 (Kolay)";
+
+        document.getElementById('main-show-btn').style.display = 'none';
+        document.getElementById('anki-controls').style.display = 'flex';
+    }
+
+    function processAnki(grade) {
+        if (!currentCard || !isFlipped) return;
+
+        const ONE_DAY = 24 * 60 * 60 * 1000;
+        let card = ankiData[currentCard.id];
+
+        if (grade === 1) {
+            // Bilemediğinde erteleme YAPMA, anında şu anki zamana kur (ayrılmasın)
+            card.repetition = 0;
+            card.interval = 0;
+            card.dueDate = Date.now(); 
+        } else {
+            if (grade === 2) {
+                card.interval = card.interval === 0 ? 1 : card.interval * 1.2;
+                card.ease = Math.max(1.3, card.ease - 0.15);
+            } else if (grade === 3) {
+                card.interval = card.interval === 0 ? 1 : (card.interval === 1 ? 3 : card.interval * card.ease);
+            } else if (grade === 4) {
+                card.interval = card.interval === 0 ? 4 : card.interval * card.ease * 1.3;
+                card.ease += 0.15;
+            }
+            card.repetition += 1;
+            card.dueDate = Date.now() + (card.interval * ONE_DAY);
+        }
+
+        saveData();
+
+        // Eğer 1 (Yeniden) seçildiyse bu kartı sıradaki kartların en arkasına it ki hemen dönsün
+        if (grade === 1) {
+            const dueList = getDueCards();
+            if (dueList.length > 1) {
+                delete ankiData[currentCard.id];
+                ankiData[currentCard.id] = card;
+                saveData();
+            }
+        }
+
+        renderNextCard();
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' || e.code === 'Enter') {
+            e.preventDefault();
+            if (!isFlipped) showAnswer();
+        } else if (isFlipped) {
+            if (e.key === '1') processAnki(1);
+            if (e.key === '2') processAnki(2);
+            if (e.key === '3') processAnki(3);
+            if (e.key === '4') processAnki(4);
+        }
+    });
+
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(ankiData));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "knn_anki_backup.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importData() {
+        document.getElementById('file-input').click();
+    }
+
+    function handleFileLoad(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                ankiData = JSON.parse(e.target.result);
+                saveData();
+                alert("Yedek başarıyla yüklendi!");
+                renderNextCard();
+            } catch (err) {
+                alert("Hatalı dosya formatı!");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function resetSystem() {
+        if (confirm("Tüm Anki öğrenme geçmişin silinecek ve baştan başlayacaksın. Emin misin?")) {
+            localStorage.removeItem('knn_anki_db');
+            location.reload();
+        }
+    }
+
+    renderNextCard();
+</script>
+
+</body>
+</html>
