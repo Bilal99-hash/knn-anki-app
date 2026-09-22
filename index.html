@@ -16,7 +16,7 @@
         .card:hover { border-color: #007aff; }
         .card-img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; display: block; }
         
-        /* Kesin Görünür Mavi Telaffuz Butonu */
+        /* Telaffuz Butonu */
         .audio-btn { position: absolute; top: 10px; right: 10px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
         .audio-btn:active { transform: scale(0.92); }
 
@@ -75,7 +75,7 @@
     <div class="card-wrapper">
         <button class="audio-btn" id="speak-btn" onclick="speakWord(event)" title="Telaffuzu Dinle">🔊</button>
         <div class="card" id="flashcard" onclick="showAnswer()">
-            <img id="card-image" class="card-img" src="" alt="Kelime Görseli" style="display:none;">
+            <img id="card-image" class="card-img" src="" alt="Kelime Görseli" onerror="this.style.display='none'">
             <div class="card-word" id="word-text">Yükleniyor...</div>
             <div class="card-meaning" id="meaning-text"></div>
             <div class="card-example" id="example-text"></div>
@@ -122,39 +122,45 @@
 <script>
     const DAILY_LIMIT = 50;
 
+    // DİNAMİK BENZERSİZ GÖRSEL ÜRETECİ (Her kelimeye özel görsel araması)
+    function getImgUrl(word) {
+        return `https://source.unsplash.com/500x300/?${encodeURIComponent(word)}`;
+    }
+
     const rawData = `
-book; kitap; I read a book every night.; Her gece bir kitap okurum.; https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&q=80
-water; su; I drink water every day.; Her gün su içerim.; https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=500&q=80
-house; ev; My house is near the park.; Evim parkın yakınındadır.; https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=500&q=80
-car; araba; He drives a red car.; O kırmızı bir araba sürer.; https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&q=80
-phone; telefon; Where is my phone?; Telefonum nerede?; https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&q=80
-apple; elma; An apple a day keeps the doctor away.; Günde bir elma doktoru uzak tutar.; https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&q=80
-cat; kedi; The cat is sleeping on the sofa.; Kedi kanepede uyuyor.; https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&q=80
-dog; köpek; The dog is running fast.; Köpek hızlı koşuyor.; https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&q=80
-tree; ağaç; There is a big tree in the garden.; Bahçede büyük bir ağaç var.; https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=500&q=80
-sun; güneş; The sun is shining today.; Bugün güneş parlıyor.; https://images.unsplash.com/photo-1538370965046-79c0d6907d47?w=500&q=80
-coffee; kahve; I drink coffee every morning.; Her sabah kahve içerim.; https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80
-tea; çay; Would you like a cup of tea?; Bir fincan çay ister misiniz?; https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&q=80
-door; kapı; Please close the door.; Lütfen kapıyı kapatın.; https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500&q=80
-room; oda; My room is clean.; Odam temizdir.; https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=500&q=80
-bread; ekmek; I buy fresh bread.; Taze ekmek alırım.; https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80
-milk; süt; I drink a glass of milk.; Bir bardak süt içerim.; https://images.unsplash.com/photo-1563636619-e9143da7973b?w=500&q=80
-chair; sandalye; Sit on the chair.; Sandalyeye otur.; https://images.unsplash.com/photo-1503602642458-232111445657?w=500&q=80
-table; masa; The book is on the table.; Kitap masanın üstündedir.; https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?w=500&q=80
-pen; kalem; Write with a pen.; Kalemle yaz.; https://images.unsplash.com/photo-1585336261026-6757f541a674?w=500&q=80
-bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80
+book; kitap; I read a book every night.; Her gece bir kitap okurum.
+water; su; I drink water every day.; Her gün su içerim.
+house; ev; My house is near the park.; Evim parkın yakınındadır.
+car; araba; He drives a red car.; O kırmızı bir araba sürer.
+phone; telefon; Where is my phone?; Telefonum nerede?
+apple; elma; An apple a day keeps the doctor away.; Günde bir elma doktoru uzak tutar.
+cat; kedi; The cat is sleeping on the sofa.; Kedi kanepede uyuyor.
+dog; köpek; The dog is running fast.; Köpek hızlı koşuyor.
+tree; ağaç; There is a big tree in the garden.; Bahçede büyük bir ağaç var.
+sun; güneş; The sun is shining today.; Bugün güneş parlıyor.
+coffee; kahve; I drink coffee every morning.; Her sabah kahve içerim.
+tea; çay; Would you like a cup of tea?; Bir fincan çay ister misiniz?
+door; kapı; Please close the door.; Lütfen kapıyı kapatın.
+room; oda; My room is clean.; Odam temizdir.
+bread; ekmek; I buy fresh bread.; Taze ekmek alırım.
+milk; süt; I drink a glass of milk.; Bir bardak süt içerim.
+chair; sandalye; Sit on the chair.; Sandalyeye otur.
+table; masa; The book is on the table.; Kitap masanın üstündedir.
+pen; kalem; Write with a pen.; Kalemle yaz.
+bag; çanta; My school bag is heavy.; Okul çantam ağırdır.
     `.trim();
 
     let fullWordList = [];
     const baseLines = rawData.split('\n');
     baseLines.forEach(line => {
         const p = line.split(';');
+        const w = p[0].trim();
         fullWordList.push({ 
-            word: p[0].trim(), 
+            word: w, 
             meaning: p[1].trim(), 
             example: p[2].trim(), 
             translation: p[3] ? p[3].trim() : '',
-            imageUrl: p[4] ? p[4].trim() : '' 
+            imageUrl: getImgUrl(w)
         });
     });
 
@@ -202,7 +208,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; https://images.u
                 meaning: item[1],
                 example: item[2],
                 translation: item[3],
-                imageUrl: `https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80`
+                imageUrl: getImgUrl(item[0])
             });
         }
     });
@@ -310,10 +316,6 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; https://images.u
             utterance.lang = 'en-US';
             utterance.rate = 0.85;
             window.speechSynthesis.speak(utterance);
-        } else {
-            const encodedWord = encodeURIComponent(currentCard.word);
-            const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedWord}&tl=en&client=tw-ob`);
-            audio.play();
         }
     }
 
