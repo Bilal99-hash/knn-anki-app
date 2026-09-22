@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anki Pro</title>
+    <title>Anki Pro (FSRS-4)</title>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -15,9 +15,8 @@
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
         .card:hover { border-color: #007aff; }
         
-        .card-icon { font-size: 72px; margin-bottom: 12px; line-height: 1; }
+        .card-icon { font-size: 80px; margin-bottom: 12px; line-height: 1; display: block; }
         
-        /* Telaffuz Butonu */
         .audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
         .audio-btn:active { transform: scale(0.92); }
 
@@ -54,8 +53,11 @@
         
         .word-list { overflow-y: auto; flex: 1; margin-top: 8px; padding-right: 4px; min-height: 0; }
         .word-item { padding: 12px 0; border-bottom: 1px solid #f2f2f7; display: flex; justify-content: space-between; align-items: center; }
+        .word-item-info { flex: 1; }
         .word-item-title { font-weight: 700; font-size: 15px; color: #1c1c1e; }
         .word-item-sub { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+        .word-item-actions { display: flex; align-items: center; gap: 8px; }
+        .delete-btn { background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; font-weight: 600; }
         .badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; color: white; font-weight: 700; flex-shrink: 0; }
         .badge-1 { background: #ff3b30; }
         .badge-2 { background: #ff9500; }
@@ -67,7 +69,7 @@
 <body>
 
 <div class="app-container">
-    <h1>Anki Pro</h1>
+    <h1>Anki Pro (FSRS)</h1>
     <div class="stats">
         <span>Bugün Kalan: <strong id="due-count" style="color:#007aff;">0 / 50</strong></span>
         <span>Öğrenilen: <strong id="mastered-count" style="color:#34c759;">0</strong></span>
@@ -88,10 +90,10 @@
     <button class="show-answer-btn" id="main-show-btn" onclick="showAnswer()">Cevabı Göster (Space)</button>
 
     <div class="anki-buttons" id="anki-controls">
-        <button class="anki-btn btn-again" onclick="processAnki(1)">Yeniden (1)<br><small>Hemen</small></button>
-        <button class="anki-btn btn-hard" onclick="processAnki(2)">Zor (2)<br><small>1 gün</small></button>
-        <button class="anki-btn btn-good" onclick="processAnki(3)">İyi (3)<br><small>3 gün</small></button>
-        <button class="anki-btn btn-easy" onclick="processAnki(4)">Kolay (4)<br><small>7 gün</small></button>
+        <button class="anki-btn btn-again" onclick="processAnki(1)">Yeniden (1)</button>
+        <button class="anki-btn btn-hard" onclick="processAnki(2)">Zor (2)</button>
+        <button class="anki-btn btn-good" onclick="processAnki(3)">İyi (3)</button>
+        <button class="anki-btn btn-easy" onclick="processAnki(4)">Kolay (Kaldır)</button>
     </div>
 
     <div class="tools">
@@ -208,7 +210,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         }
     });
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_db_final')) || {};
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_fsrs_db')) || {};
     let activeQueue = [];
 
     fullWordList.forEach((item, idx) => {
@@ -222,10 +224,11 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
                 example: item.example,
                 translation: item.translation,
                 icon: item.icon,
-                interval: 0,
-                repetition: 0,
+                stability: 0,
+                difficulty: 5.0,
+                reps: 0,
+                lapses: 0,
                 lastGrade: 0,
-                ease: 2.5,
                 dueDate: Date.now()
             };
         }
@@ -235,7 +238,8 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
 
     function initQueue() {
         const now = Date.now();
-        let dueCards = Object.values(ankiData).filter(c => c.dueDate <= now);
+        // Sadece silinmemiş ve vadesi gelmiş/bakılmamış kartlar
+        let dueCards = Object.values(ankiData).filter(c => c.lastGrade !== 4 && c.dueDate <= now);
         
         if (dueCards.length === 0) {
             dueCards = Object.values(ankiData).filter(c => c.lastGrade === 0).sort((a,b) => a.index - b.index);
@@ -250,7 +254,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
     let isFlipped = false;
 
     function saveData() {
-        localStorage.setItem('knn_anki_db_final', JSON.stringify(ankiData));
+        localStorage.setItem('knn_anki_fsrs_db', JSON.stringify(ankiData));
     }
 
     function getMasteredCards() {
@@ -265,7 +269,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
             document.getElementById('card-icon').style.display = 'none';
             document.getElementById('word-text').textContent = "🎉 Günlük Hedef Bitti!";
             document.getElementById('speak-btn').style.display = 'none';
-            document.getElementById('meaning-text').textContent = "Bugünün 50 kelimelik paketini başarıyla tamamladın.";
+            document.getElementById('meaning-text').textContent = "Bugünün 50 kelimelik paketini FSRS algoritmasıyla tamamladın.";
             document.getElementById('meaning-text').style.display = 'block';
             document.getElementById('example-text').style.display = 'none';
             document.getElementById('translation-text').style.display = 'none';
@@ -327,19 +331,34 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         const ONE_DAY = 24 * 60 * 60 * 1000;
         let card = ankiData[currentCard.id];
         card.lastGrade = grade;
+        card.reps += 1;
+
+        if (grade === 4) { // Kolay -> Kartı Tamamen Kaldır
+            card.dueDate = Date.now() + (3650 * ONE_DAY); // 10 yıl sonraya at (kaldır)
+            activeQueue.shift();
+            saveData();
+            renderNextCard();
+            return;
+        }
+
+        let newD = card.difficulty - 0.8 * (grade - 3);
+        card.difficulty = Math.max(1, Math.min(10, newD));
+
+        let intervalDays = 1;
 
         if (grade === 1) {
-            card.repetition = 0;
-            card.interval = 0;
-            card.dueDate = Date.now(); 
-        } else {
-            if (grade === 2) card.interval = 1;
-            else if (grade === 3) card.interval = 3;
-            else if (grade === 4) card.interval = 7;
-            
-            card.repetition += 1;
-            card.dueDate = Date.now() + (card.interval * ONE_DAY);
+            card.lapses += 1;
+            card.stability = 0.4;
+            intervalDays = 0;
+        } else if (grade === 2) {
+            card.stability = card.stability === 0 ? 1 : card.stability * 1.2;
+            intervalDays = Math.max(1, Math.round(card.stability));
+        } else if (grade === 3) {
+            card.stability = card.stability === 0 ? 2.5 : card.stability * (2.2 - (card.difficulty * 0.1));
+            intervalDays = Math.max(1, Math.round(card.stability));
         }
+
+        card.dueDate = Date.now() + (intervalDays * ONE_DAY);
 
         saveData();
 
@@ -352,17 +371,30 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         renderNextCard();
     }
 
+    function deleteCardDirectly(cardId) {
+        if (confirm("Bu kelimeyi listeden kalıcı olarak silmek istediğine emin misin?")) {
+            delete ankiData[cardId];
+            saveData();
+            initQueue();
+            renderNextCard();
+            updateFilterCounts();
+            filterList('all', document.querySelector('.filter-chip.active'));
+        }
+    }
+
     function advanceToNextDay() {
         const password = prompt("Yeni güne geçmek için şifreyi girin:");
         if (password === "1213") {
             const now = Date.now();
             Object.values(ankiData).forEach(card => {
-                card.dueDate = now - 1000;
+                if (card.lastGrade !== 4) {
+                    card.dueDate = now - 1000;
+                }
             });
             saveData();
             initQueue();
             renderNextCard();
-            alert("Başarılı! Sıradaki 50 kelimelik paket aktif edildi.");
+            alert("Başarılı! FSRS algoritmik sırasındaki yeni 50 kelimelik paket aktif edildi.");
         } else if (password !== null) {
             alert("Hatalı şifre! İşlem iptal edildi.");
         }
@@ -409,11 +441,14 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
                 const div = document.createElement('div');
                 div.className = 'word-item';
                 div.innerHTML = `
-                    <div>
+                    <div class="word-item-info">
                         <div class="word-item-title">${item.index + 1}. ${item.word}</div>
                         <div class="word-item-sub">${item.meaning}</div>
                     </div>
-                    <span class="badge badge-${grade}">${labelMap[grade]}</span>
+                    <div class="word-item-actions">
+                        <span class="badge badge-${grade}">${labelMap[grade]}</span>
+                        <button class="delete-btn" onclick="deleteCardDirectly('${item.id}')">Sil</button>
+                    </div>
                 `;
                 container.appendChild(div);
             }
@@ -434,7 +469,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
 
     function resetSystem() {
         if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {
-            localStorage.removeItem('knn_anki_db_final');
+            localStorage.removeItem('knn_anki_fsrs_db');
             location.reload();
         }
     }
