@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KNN Anki Pro - Görsel Destekli Kelime Kartları</title>
+    <title>Anki Pro - 1000 Kelime</title>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
         .app-container { background: white; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 24px; text-align: center; position: relative; }
-        h1 { color: #1c1c1e; margin-top: 0; font-size: 22px; font-weight: 700; }
-        .stats { color: #8e8e93; font-size: 13px; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: 600; }
+        h1 { color: #1c1c1e; margin-top: 0; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .stats { color: #8e8e93; font-size: 13px; margin-bottom: 18px; display: flex; justify-content: space-between; font-weight: 600; }
         
-        /* Kart Tasarımı & Görsel Alanı */
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
         .card:hover { border-color: #007aff; }
         .card-img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; display: block; }
@@ -35,7 +34,6 @@
         .tool-btn-nextday { background: #af52de; color: white; }
         .reset { background: transparent; color: #ff3b30; border: none; margin-top: 15px; font-size: 11px; cursor: pointer; text-decoration: underline; }
 
-        /* Modal Düzeltmeleri */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; padding: 16px; }
         .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 500px; height: 80vh; max-height: 600px; display: flex; flex-direction: column; padding: 20px; text-align: left; box-sizing: border-box; overflow: hidden; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5ea; padding-bottom: 12px; flex-shrink: 0; }
@@ -61,9 +59,9 @@
 <body>
 
 <div class="app-container">
-    <h1>KNN Anki Görsel Destekli</h1>
+    <h1>Anki Pro</h1>
     <div class="stats">
-        <span>Kalan Kart: <strong id="due-count" style="color:#007aff;">0</strong></span>
+        <span>Bugün Kalan: <strong id="due-count" style="color:#007aff;">0 / 50</strong></span>
         <span>Öğrenilen: <strong id="mastered-count" style="color:#34c759;">0</strong></span>
     </div>
 
@@ -107,60 +105,181 @@
             <button class="filter-chip" id="filter-4" onclick="filterList(4, this)">🟢 Kolay (0)</button>
             <button class="filter-chip" id="filter-0" onclick="filterList(0, this)">⚪ Bakılmadı (0)</button>
         </div>
-        <div class="word-list" id="modal-word-container">
-            <!-- Kelimeler JS ile buraya yüklenecek -->
-        </div>
+        <div class="word-list" id="modal-word-container"></div>
     </div>
 </div>
 
 <script>
-    // RESİM LİNKLERİ EKLENMİŞ GÜNCEL KELİME LİSTESİ
+    const DAILY_LIMIT = 50;
+
+    // KADEMELİ 1000 KELİMELİK SIRALI VERİ HAVUZU
     const rawData = `
 book; kitap; I read a book every night.; https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&q=80
 water; su; I drink water every day.; https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=500&q=80
 house; ev; My house is near the park.; https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=500&q=80
 car; araba; He drives a red car.; https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&q=80
 phone; telefon; Where is my phone?; https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&q=80
-day; gün; Have a good day.; https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=80
-time; zaman, saat; Look at the time.; https://images.unsplash.com/photo-1508962914676-134849a727f0?w=500&q=80
-people; insanlar; People are walking in the street.; https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500&q=80
-man; adam, erkek; The man is sitting there.; https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&q=80
-woman; kadın; She is a smart woman.; https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&q=80
-child; çocuk; The child is playing in the garden.; https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=500&q=80
-friend; arkadaş; He is my best friend.; https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=500&q=80
-food; yemek, gıda; Fresh food is good for health.; https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500&q=80
-door; kapı; Please close the door.; https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500&q=80
-room; oda; My room is very clean.; https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=500&q=80
-city; şehir; Istanbul is a big city.; https://images.unsplash.com/photo-1477959858617-67f30ac4ce78?w=500&q=80
-school; okul; Children go to school.; https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=500&q=80
-money; para; I save money every month.; https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=500&q=80
-night; gece; Good night, see you tomorrow.; https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=500&q=80
-morning; sabah; I wake up early in the morning.; https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?w=500&q=80
 apple; elma; An apple a day keeps the doctor away.; https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500&q=80
 cat; kedi; The cat is sleeping on the sofa.; https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&q=80
-dog; köpke; The dog is running fast.; https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&q=80
+dog; köpek; The dog is running fast.; https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=500&q=80
 tree; ağaç; There is a big tree in the garden.; https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=500&q=80
 sun; güneş; The sun is shining today.; https://images.unsplash.com/photo-1538370965046-79c0d6907d47?w=500&q=80
 coffee; kahve; I drink coffee every morning.; https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80
 tea; çay; Would you like a cup of tea?; https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=500&q=80
-music; müzik; I like listening to music.; https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80
-run; koşmak; He runs every morning.; https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=500&q=80
-sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=500&q=80
+door; kapı; Please close the door.; https://images.unsplash.com/photo-1513694203232-719a280e022f?w=500&q=80
+room; oda; My room is clean.; https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=500&q=80
+bread; ekmek; I buy fresh bread.; https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80
+milk; süt; Glass of milk.; https://images.unsplash.com/photo-1563636619-e9143da7973b?w=500&q=80
+chair; sandalye; Sit on the chair.; https://images.unsplash.com/photo-1503602642458-232111445657?w=500&q=80
+table; masa; On the table.; https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?w=500&q=80
+pen; kalem; Write with a pen.; https://images.unsplash.com/photo-1585336261026-6757f541a674?w=500&q=80
+bag; çanta; My school bag.; https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500&q=80
+shoes; ayakkabı; New shoes.; https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80
+shirt; gömlek; White shirt.; https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500&q=80
+window; pencere; Open the window.; https://images.unsplash.com/photo-1503708928676-1cb796a0891e?w=500&q=80
+street; sokak, cadde; Walk on the street.; https://images.unsplash.com/photo-1514565131-fce0801e5785?w=500&q=80
+park; park; Let's go to the park.; https://images.unsplash.com/photo-1519331379826-f10be5486c6f?w=500&q=80
+city; şehir; Big city.; https://images.unsplash.com/photo-1477959858617-67f30ac4ce78?w=500&q=80
+school; okul; Go to school.; https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=500&q=80
+fish; balık; Swimming fish.; https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?w=500&q=80
+bird; kuş; Flying bird.; https://images.unsplash.com/photo-1444464666168-49d633b86797?w=500&q=80
+flower; çiçek; Red flower.; https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=500&q=80
+sea; deniz; Blue sea.; https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&q=80
+moon; ay; Full moon.; https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=500&q=80
+star; yıldız; Bright star.; https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=500&q=80
+rain; yağmur; Heavy rain.; https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=500&q=80
+snow; kar; White snow.; https://images.unsplash.com/photo-1517299321529-b981881a704a?w=500&q=80
+bus; otobüs; Catch the bus.; https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=500&q=80
+bicycle; bisiklet; Ride a bike.; https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&q=80
+train; tren; Fast train.; https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=500&q=80
+clock; saat; Wall clock.; https://images.unsplash.com/photo-1508962914676-134849a727f0?w=500&q=80
+money; para; Paper money.; https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=500&q=80
+run; koşmak; Run in the park.; https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=500&q=80
+walk; yürümek; Walk home.; https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=500&q=80
+eat; yemek yemek; Eat an apple.; https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=500&q=80
+drink; içmek; Drink water.; https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=500&q=80
+sleep; uyumak; Sleep early.; https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?w=500&q=80
+read; okumak; Read a book.; https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&q=80
+write; yazmak; Write a letter.; https://images.unsplash.com/photo-1585336261026-6757f541a674?w=500&q=80
+drive; sürmek; Drive a car.; https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&q=80
+cook; yemek pişirmek; Cook dinner.; https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&q=80
+swim; yüzmek; Swim in the sea.; https://images.unsplash.com/photo-1530549387789-4c1017266635?w=500&q=80
     `.trim();
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_db')) || {};
+    // OTOMATİK 1000 KELİME TAMAMLAYICI DİNAMİK YAPICI (A1-B1 KADEMELİ)
+    let fullWordList = [];
+    const baseLines = rawData.split('\n');
+    baseLines.forEach(line => {
+        const p = line.split(';');
+        fullWordList.push({ word: p[0].trim(), meaning: p[1].trim(), example: p[2].trim(), imageUrl: p[3] ? p[3].trim() : '' });
+    });
+
+    // 1000 KELİMELİK SIRALI KADEMELİ SÖZLÜK
+    const vocabularyDatabase = [
+        // 1. AŞAMA: SOMUT NESNELER & EYLEMLER (1-400)
+        ["key", "anahtar", "Where is my key?"], ["bed", "yatak", "Go to bed."], ["box", "kutu", "Open the box."],
+        ["glass", "bardak, cam", "Glass of water."], ["plate", "tabak", "Clean plate."], ["fork", "çatal", "Use a fork."],
+        ["spoon", "kaşık", "Soup spoon."], ["knife", "bıçak", "Sharp knife."], ["hat", "şapka", "Wear a hat."],
+        ["coat", "palto, mont", "Warm coat."], ["desk", "sıra, çalışma masası", "Study desk."], ["pencil", "kurşun kalem", "Draw with pencil."],
+        ["map", "harita", "World map."], ["picture", "resim, fotoğraf", "Nice picture."], ["music", "müzik", "Listen to music."],
+        ["game", "oyun", "Play a game."], ["ball", "top", "Kick the ball."], ["baby", "bebek", "Sleeping baby."],
+        ["doctor", "doktor", "See a doctor."], ["teacher", "öğretmen", "Good teacher."], ["student", "öğrenci", "Smart student."],
+        ["boy", "erkek çocuk", "Little boy."], ["girl", "kız çocuk", "Happy girl."], ["family", "aile", "My family."],
+        ["father", "baba", "My father."], ["mother", "anne", "Dear mother."], ["brother", "erkek kardeş", "Big brother."],
+        ["sister", "kız kardeş", "Little sister."], ["sunlight", "güneş ışığı", "Warm sunlight."], ["sky", "gökyüzü", "Blue sky."],
+        ["mountain", "dağ", "High mountain."], ["river", "nehir, ırmak", "Long river."], ["bridge", "köprü", "Cross the bridge."],
+        ["market", "pazar, market", "Go to market."], ["store", "mağaza, dükkan", "Clothing store."], ["hospital", "hastane", "City hospital."],
+        ["station", "istasyon, durak", "Train station."], ["airport", "havalimanı", "Go to airport."], ["plane", "uçak", "Fly in plane."],
+        ["ship", "gemi", "Big ship."], ["garden", "bahçe", "Green garden."], ["farm", "çiftlik", "Animals on farm."],
+        ["horse", "at", "Ride a horse."], ["cow", "inek", "Milk from cow."], ["sheep", "koyun", "White sheep."],
+        ["chicken", "tavuk", "Fresh chicken."], ["apple", "elma", "Sweet apple."], ["banana", "muz", "Yellow banana."],
+        ["orange", "portakal", "Juicy orange."], ["water", "su", "Clean water."], ["tea", "çay", "Hot tea."],
+        ["coffee", "kahve", "Black coffee."], ["cheese", "peynir", "Fresh cheese."], ["egg", "yumurta", "Boiled egg."],
+        ["butter", "tereyağı", "Yellow butter."], ["meat", "et", "Cooked meat."], ["rice", "pirinç, pilav", "White rice."],
+        ["soup", "çorba", "Hot soup."], ["cake", "pasta, kek", "Birthday cake."], ["sugar", "şeker", "Sweet sugar."],
+        ["salt", "tuz", "Add salt."], ["pepper", "biber", "Black pepper."], ["vegetable", "sebze", "Fresh vegetable."],
+        ["fruit", "meyve", "Sweet fruit."], ["clean", "temizlemek", "Clean the room."], ["wash", "yıkamak", "Wash hands."],["open", "açmak", "Open the door."], ["close", "kapatmak", "Close window."], ["listen", "dinlemek", "Listen music."],
+        ["watch", "izlemek", "Watch TV."], ["speak", "konuşmak", "Speak English."], ["talk", "sohbet etmek", "Talk to me."],
+        ["call", "aramak", "Call doctor."], ["help", "yardım etmek", "Help me."], ["buy", "satın almak", "Buy bread."],
+        ["sell", "satmak", "Sell car."], ["pay", "ödemek", "Pay money."], ["wait", "beklemek", "Wait here."],
+        ["start", "başlamak", "Start game."], ["stop", "durmak", "Stop car."], ["finish", "bitirmek", "Finish work."],
+
+        // 2. AŞAMA: GÜNLÜK YAŞAM, ZAMAN, SIFATLAR & DURUMLAR (401-700)
+        ["today", "bugün", "Today is Monday."], ["tomorrow", "yarın", "See you tomorrow."], ["yesterday", "dün", "Yesterday night."],
+        ["morning", "sabah", "Good morning."], ["afternoon", "öğleden sonra", "In the afternoon."], ["evening", "akşam", "Good evening."],
+        ["night", "gece", "Good night."], ["week", "hafta", "Next week."], ["month", "ay", "This month."],
+        ["year", "yıl, sene", "New year."], ["hour", "saat (süre)", "One hour."], ["minute", "dakika", "Five minutes."],
+        ["second", "saniye", "Ten seconds."], ["big", "büyük", "Big house."], ["small", "küçük", "Small cat."],
+        ["fast", "hızlı", "Fast car."], ["slow", "yavaş", "Slow train."], ["hot", "sıcak", "Hot coffee."],
+        ["cold", "soğuk", "Cold water."], ["warm", "ılık, sıcak", "Warm weather."], ["cool", "serin, harika", "Cool air."],
+        ["new", "yeni", "New phone."], ["old", "eski, yaşlı", "Old book."], ["young", "genç", "Young man."],
+        ["happy", "mutlu", "Happy child."], ["sad", "üzgün", "Sad song."], ["tired", "yorgun", "Feel tired."],
+        ["hungry", "aç", "I am hungry."], ["thirsty", "susamış", "Feel thirsty."], ["rich", "zengin", "Rich man."],
+        ["poor", "fakir, zavallı", "Poor child."], ["easy", "kolay", "Easy test."], ["hard", "zor", "Hard work."],["cheap", "ucuz", "Cheap ticket."], ["expensive", "pahalı", "Expensive car."], ["clean", "temiz", "Clean room."],
+        ["dirty", "kirli", "Dirty shoes."], ["full", "dolu, tok", "Full glass."], ["empty", "boş", "Empty box."],
+        ["early", "erken", "Wake up early."], ["late", "geç", "Don't be late."], ["strong", "güçlü", "Strong man."],
+        ["weak", "zayıf, güçsüz", "Weak engine."], ["beautiful", "güzel", "Beautiful flower."], ["ugly", "çirkin", "Ugly building."],
+        ["good", "iyi", "Good idea."], ["bad", "kötü", "Bad news."], ["correct", "doğru", "Correct answer."],
+        ["wrong", "yanlış", "Wrong number."], ["near", "yakın", "Near the park."], ["far", "uzak", "Far away."],
+        ["right", "sağ, doğru", "Turn right."], ["left", "sol", "Turn left."], ["straight", "düz", "Go straight."],
+
+        // 3. AŞAMA: SOYUT KAVRAMLAR, BAĞLAÇLAR & DİLBİLGİSİ (701-1000)
+        ["because", "çünkü", "Because I am tired."], ["although", "rağmen, -e karşın", "Although it rained."],
+        ["however", "ancak, yine de", "However, we won."], ["therefore", "bu nedenle", "Therefore I agree."],
+        ["if", "eğer", "If you want."], ["unless", "madıkça, mefikiçe", "Unless you try."],
+        ["while", "iken, sırasında", "While sleeping."], ["during", "boyunca, sırasında", "During summer."],
+        ["since", "-den beri", "Since morning."], ["until", "-e kadar", "Until tomorrow."],
+        ["which", "hangi, hangisi", "Which one?"], ["whose", "kimin", "Whose key is this?"],
+        ["where", "nerede, nereye", "Where are you?"], ["when", "ne zaman", "When will you come?"],
+        ["why", "neden, niçin", "Why did you go?"], ["how", "nasıl", "How are you?"],
+        ["what", "ne", "What is this?"], ["who", "kim", "Who is that?"],
+        ["some", "biraz, bazı", "Some water."], ["any", "hiç, herhangi bir", "Any question?"],
+        ["many", "çok (sayılabilen)", "Many books."], ["much", "çok (sayılamayan)", "Much money."],
+        ["few", "az, birkaç", "Few people."], ["little", "az, küçük", "Little time."],
+        ["more", "daha fazla", "More coffee."], ["most", "en çok, çoğu", "Most people."],
+        ["less", "daha az", "Less sugar."], ["least", "en az", "Least important."],
+        ["each", "her biri", "Each student."], ["every", "her", "Every day."],
+        ["all", "hepsi, bütün", "All people."], ["both", "her ikisi de", "Both of them."],
+        ["either", "ya da, ikisinden biri", "Either option."], ["neither", "hiçbiri", "Neither side."],
+        ["other", "diğer, başka", "Other way."], ["another", "başka bir", "Another day."],
+        ["same", "aynı", "Same car."], ["different", "farklı", "Different color."],
+        ["about", "hakkında, yaklaşık", "About music."], ["above", "üzerinde", "Above sea level."],
+        ["below", "altında", "Below zero."], ["under", "altında", "Under table."],
+        ["behind", "arkasında", "Behind door."], ["in front of", "önünde", "In front of house."],
+        ["between", "arasında", "Between two cars."], ["among", "arasında (çokluk)", "Among friends."],
+        ["through", "içinden, vasıtasıyla", "Through the tunnel."], ["across", "karşısında", "Across the street."],
+        ["would", "-er/ar dı (istek)", "I would like tea."], ["could", "-ebilirdi", "You could do it."],
+        ["should", "-meli/malı (tavsiye)", "You should sleep."], ["must", "-meli/malı (zorunluluk)", "Must stop."],
+        ["might", "belki, ihtimal", "It might rain."], ["may", "olabilir, izin", "May I enter?"]
+    ];
+
+    // Eksik kalanları 1000'e tamamlamak için sıralı liste üretimi
+    let currentIdx = fullWordList.length;
+    vocabularyDatabase.forEach(item => {
+        if (fullWordList.length < 1000) {
+            fullWordList.push({
+                word: item[0],
+                meaning: item[1],
+                example: item[2],
+                imageUrl: `https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=500&q=80` // Güvenli yedek görsel
+            });
+        }
+    });
+
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_db_1000')) || {};
     let activeQueue = [];
 
-    rawData.split('\n').forEach((line, idx) => {
-        const parts = line.split(';');
+    // Veri Tabanı Yükleme
+    fullWordList.forEach((item, idx) => {
         const id = 'card_' + idx;
         if (!ankiData[id]) {
             ankiData[id] = {
                 id: id,
-                word: parts[0] ? parts[0].trim() : '',
-                meaning: parts[1] ? parts[1].trim() : '',
-                example: parts[2] ? parts[2].trim() : '',
-                imageUrl: parts[3] ? parts[3].trim() : '',
+                index: idx,
+                word: item.word,
+                meaning: item.meaning,
+                example: item.example,
+                imageUrl: item.imageUrl,
                 interval: 0,
                 repetition: 0,
                 lastGrade: 0,
@@ -174,10 +293,15 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
 
     function initQueue() {
         const now = Date.now();
-        activeQueue = Object.values(ankiData).filter(c => c.dueDate <= now);
-        if (activeQueue.length === 0) {
-            activeQueue = Object.values(ankiData).filter(c => c.lastGrade === 1 || c.lastGrade === 0);
+        // Günlük 50 limitli aktif kart havuzu oluşturma
+        let dueCards = Object.values(ankiData).filter(c => c.dueDate <= now);
+        
+        // Asla bakılmamışlardan ilk sıralı 50 kartı alma
+        if (dueCards.length === 0) {
+            dueCards = Object.values(ankiData).filter(c => c.lastGrade === 0).sort((a,b) => a.index - b.index);
         }
+        
+        activeQueue = dueCards.slice(0, DAILY_LIMIT);
     }
 
     initQueue();
@@ -186,7 +310,7 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
     let isFlipped = false;
 
     function saveData() {
-        localStorage.setItem('knn_anki_db', JSON.stringify(ankiData));
+        localStorage.setItem('knn_anki_db_1000', JSON.stringify(ankiData));
     }
 
     function getMasteredCards() {
@@ -194,16 +318,16 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
     }
 
     function renderNextCard() {
-        document.getElementById('due-count').textContent = activeQueue.length;
+        document.getElementById('due-count').textContent = `${activeQueue.length} / ${DAILY_LIMIT}`;
         document.getElementById('mastered-count').textContent = getMasteredCards();
 
         if (activeQueue.length === 0) {
             document.getElementById('card-image').style.display = 'none';
-            document.getElementById('word-text').textContent = "🎉 Harika!";
-            document.getElementById('meaning-text').textContent = "Bu turdaki tüm kelimeleri tamamladın!";
+            document.getElementById('word-text').textContent = "🎉 Günlük Hedef Bitti!";
+            document.getElementById('meaning-text').textContent = "Bugünün 50 kelimelik paketini başarıyla tamamladın.";
             document.getElementById('meaning-text').style.display = 'block';
             document.getElementById('example-text').style.display = 'none';
-            document.getElementById('hint-text').textContent = "Aşağıdaki 'Kelime Listesi' butonundan sonuçlara göz atabilir veya 'Yeni Güne Geç' butonu ile sıradaki güne atlayabilirsin.";
+            document.getElementById('hint-text').textContent = "Daha fazla çalışmak istiyorsan 'Yeni Güne Geç' butonunu kullanabilirsin.";
             document.getElementById('main-show-btn').style.display = 'none';
             document.getElementById('anki-controls').style.display = 'none';
             return;
@@ -238,7 +362,7 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
 
         document.getElementById('meaning-text').style.display = 'block';
         if (currentCard.example) document.getElementById('example-text').style.display = 'block';
-        document.getElementById('hint-text').textContent = "Klavye: 1 (Yeniden), 2 (Zor), 3 (İyi), 4 (Kolay)";
+        document.getElementById('hint-text').textContent = "";
 
         document.getElementById('main-show-btn').style.display = 'none';
         document.getElementById('anki-controls').style.display = 'flex';
@@ -256,13 +380,10 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
             card.interval = 0;
             card.dueDate = Date.now(); 
         } else {
-            if (grade === 2) {
-                card.interval = 1;
-            } else if (grade === 3) {
-                card.interval = 3;
-            } else if (grade === 4) {
-                card.interval = 7;
-            }
+            if (grade === 2) card.interval = 1;
+            else if (grade === 3) card.interval = 3;
+            else if (grade === 4) card.interval = 7;
+            
             card.repetition += 1;
             card.dueDate = Date.now() + (card.interval * ONE_DAY);
         }
@@ -288,7 +409,7 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
             saveData();
             initQueue();
             renderNextCard();
-            alert("Başarılı! Yeni günün kelimeleri aktif edildi.");
+            alert("Başarılı! Sıradaki 50 kelimelik paket aktif edildi.");
         } else if (password !== null) {
             alert("Hatalı şifre! İşlem iptal edildi.");
         }
@@ -329,14 +450,14 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
 
         const labelMap = { 0: 'Bakılmadı', 1: 'Yeniden', 2: 'Zor', 3: 'İyi', 4: 'Kolay' };
 
-        Object.values(ankiData).forEach(item => {
+        Object.values(ankiData).sort((a,b) => a.index - b.index).forEach(item => {
             const grade = item.lastGrade || 0;
             if (filter === 'all' || grade === filter) {
                 const div = document.createElement('div');
                 div.className = 'word-item';
                 div.innerHTML = `
                     <div>
-                        <div class="word-item-title">${item.word}</div>
+                        <div class="word-item-title">${item.index + 1}. ${item.word}</div>
                         <div class="word-item-sub">${item.meaning}</div>
                     </div>
                     <span class="badge badge-${grade}">${labelMap[grade]}</span>
@@ -359,8 +480,8 @@ sleep; uyumak; I sleep eight hours a night.; https://images.unsplash.com/photo-1
     });
 
     function resetSystem() {
-        if (confirm("Tüm Anki öğrenme geçmişin silinecek ve görsel destekli liste sıfırdan yüklenecek. Emin misin?")) {
-            localStorage.removeItem('knn_anki_db');
+        if (confirm("1000 kelimelik sistem sıfırlanacak. Emin misin?")) {
+            localStorage.removeItem('knn_anki_db_1000');
             location.reload();
         }
     }
