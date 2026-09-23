@@ -208,10 +208,10 @@
         fullWordList.push({ word: item[0], meaning: item[1], example: item[2], translation: item[3], icon: item[4] });
     });
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_final_v3')) || {};
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_v100')) || {};
     let activeQueue = [];
     let repeatQueue = []; 
-    let currentIndexPointer = parseInt(localStorage.getItem('knn_final_ptr_v3')) || 0;
+    let currentIndexPointer = parseInt(localStorage.getItem('knn_ptr_v100')) || 0;
 
     fullWordList.forEach((item, idx) => {
         const id = 'card_' + idx;
@@ -229,7 +229,12 @@
         }
     });
 
-    saveData();
+    function saveData() {
+        localStorage.setItem('knn_anki_v100', JSON.stringify(ankiData));
+        localStorage.setItem('knn_ptr_v100', currentIndexPointer);
+        localStorage.setItem('knn_act_v100', JSON.stringify(activeQueue));
+        localStorage.setItem('knn_rep_v100', JSON.stringify(repeatQueue));
+    }
 
     function buildDailyQueue() {
         let againCards = Object.values(ankiData).filter(c => c.lastGrade === 1);
@@ -252,8 +257,8 @@
         repeatQueue = [];
     }
 
-    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_final_active_v3'));
-    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_final_repeat_v3'));
+    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_act_v100'));
+    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_rep_v100'));
 
     if (activeSavedQueue && (activeSavedQueue.length > 0 || (repeatSavedQueue && repeatSavedQueue.length > 0))) {
         activeQueue = activeSavedQueue || [];
@@ -262,15 +267,10 @@
         buildDailyQueue();
     }
 
+    saveData();
+
     let currentCard = null;
     let isFlipped = false;
-
-    function saveData() {
-        localStorage.setItem('knn_anki_final_v3', JSON.stringify(ankiData));
-        localStorage.setItem('knn_final_ptr_v3', currentIndexPointer);
-        localStorage.setItem('knn_final_active_v3', JSON.stringify(activeQueue));
-        localStorage.setItem('knn_final_repeat_v3', JSON.stringify(repeatQueue));
-    }
 
     function getMasteredCards() {
         return Object.values(ankiData).filter(c => c.lastGrade >= 2).length;
