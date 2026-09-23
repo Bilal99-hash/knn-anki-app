@@ -311,7 +311,7 @@
         loopIndex++;
     }
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_1000_pure_db')) || {};
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_1000_v3_db')) || {};
     let activeQueue = [];
     let repeatQueue = []; 
 
@@ -332,9 +332,9 @@
     });
 
     function saveData() {
-        localStorage.setItem('knn_anki_1000_pure_db', JSON.stringify(ankiData));
-        localStorage.setItem('knn_1000_act_v2', JSON.stringify(activeQueue));
-        localStorage.setItem('knn_1000_rep_v2', JSON.stringify(repeatQueue));
+        localStorage.setItem('knn_anki_1000_v3_db', JSON.stringify(ankiData));
+        localStorage.setItem('knn_1000_act_v3', JSON.stringify(activeQueue));
+        localStorage.setItem('knn_1000_rep_v3', JSON.stringify(repeatQueue));
     }
 
     function buildDailyQueue() {
@@ -349,8 +349,8 @@
         repeatQueue = [];
     }
 
-    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_1000_act_v2'));
-    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_1000_rep_v2'));
+    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_1000_act_v3'));
+    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_1000_rep_v3'));
 
     if (activeSavedQueue && (activeSavedQueue.length > 0 || (repeatSavedQueue && repeatSavedQueue.length > 0))) {
         activeQueue = activeSavedQueue || [];
