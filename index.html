@@ -15,7 +15,7 @@
         .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
         .card:hover { border-color: #007aff; }
         
-        /* Görsel İkon Başlangıçta Tamamen Gizli (Cevap Açılınca Görünür) */
+        /* Görsel İkon Kapalıyken Gizli */
         .card-icon { font-size: 80px; margin-bottom: 12px; line-height: 1; display: none; }
         
         .audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
@@ -211,7 +211,8 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         }
     });
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_fsrs_v10')) || {};
+    // Sürüm numarasını güncelledim ki tarayıcıdaki eski takılmış veriler temizlensin
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_fsrs_v11')) || {};
     let activeQueue = [];
 
     fullWordList.forEach((item, idx) => {
@@ -240,17 +241,17 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
     function initQueue() {
         const now = Date.now();
         
-        // 1. Dünden veya eskiden "Yeniden (1)" işaretli kalan kartları al
-        let againCards = Object.values(ankiData).filter(c => c.lastGrade === 1);
-        
-        // 2. Sıradaki henüz bakılmamış (lastGrade === 0) 50 yeni kartı al
+        // 1. ÖNCE yepyeni (hiç bakılmamış) 50 kelimeyi çek
         let newCards = Object.values(ankiData)
             .filter(c => c.lastGrade === 0 && c.dueDate <= now)
             .sort((a,b) => a.index - b.index)
             .slice(0, DAILY_LIMIT);
 
-        // 3. İkisini birleştir (Örn: 7 eski + 50 yeni = 57 kartlık tek bir uzun sıra)
-        activeQueue = [...againCards, ...newCards];
+        // 2. SONRA dünden veya eskiden "Yeniden (1)" işaretli kalmış kelimeleri çek
+        let againCards = Object.values(ankiData).filter(c => c.lastGrade === 1);
+
+        // 3. Yepyeni kelimeler başa, eskiden "Yeniden" dendiğin kelimeler EN ARKAYA gelsin!
+        activeQueue = [...newCards, ...againCards];
     }
 
     initQueue();
@@ -259,7 +260,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
     let isFlipped = false;
 
     function saveData() {
-        localStorage.setItem('knn_anki_fsrs_v10', JSON.stringify(ankiData));
+        localStorage.setItem('knn_anki_fsrs_v11', JSON.stringify(ankiData));
     }
 
     function getMasteredCards() {
@@ -288,7 +289,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         isFlipped = false;
 
         document.getElementById('card-icon').textContent = currentCard.icon || '💡';
-        document.getElementById('card-icon').style.display = 'none'; // Kapalıyken görsel kesinlikle görünmez
+        document.getElementById('card-icon').style.display = 'none'; // Kart kapalıyken görsel görünmez
         document.getElementById('word-text').textContent = currentCard.word;
         document.getElementById('speak-btn').style.display = 'flex';
         document.getElementById('meaning-text').textContent = currentCard.meaning;
@@ -321,7 +322,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         if (!currentCard || isFlipped) return;
         isFlipped = true;
 
-        // Cevap açıldığında görsel ikon ve detaylar görünür
+        // Cevap açıldığında görsel ikon ve diğer bilgiler açılır
         document.getElementById('card-icon').style.display = 'block';
         document.getElementById('meaning-text').style.display = 'block';
         if (currentCard.example) document.getElementById('example-text').style.display = 'block';
@@ -369,7 +370,6 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
 
         saveData();
 
-        // O anki kelimeyi sıradan çıkar
         const poppedCard = activeQueue.shift();
 
         // Eğer kelimeye "Yeniden (1)" dendiysen, o anki aktif sıranın EN SONUNA ekle
@@ -401,9 +401,9 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
                 }
             });
             saveData();
-            initQueue(); // Yeniden kalanlar + Yepyeni 50 kartı tek kuyrukta birleştirir
+            initQueue();
             renderNextCard();
-            alert("Başarılı! Sıradaki kelimeler ve yeni paket yüklendi.");
+            alert("Başarılı! Yeni günün 50 kelimesi yüklendi.");
         } else if (password !== null) {
             alert("Hatalı şifre! İşlem iptal edildi.");
         }
@@ -478,7 +478,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
 
     function resetSystem() {
         if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {
-            localStorage.removeItem('knn_anki_fsrs_v10');
+            localStorage.removeItem('knn_anki_fsrs_v11');
             location.reload();
         }
     }
