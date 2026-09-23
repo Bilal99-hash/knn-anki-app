@@ -125,8 +125,7 @@
 <script>
     const DAILY_LIMIT = 50;
 
-    // GERÇEK A1-B1 KELİME VERİ TABANI (TÜMÜ ANLAMLI ÖRNEK CÜMLELERDİR)
-    const rawVocabulary = [
+    const realVocabulary = [
         ["book", "kitap", "I read a book every night.", "Her gece bir kitap okurum.", "📖"],
         ["water", "su", "I drink water every day.", "Her gün su içerim.", "💧"],
         ["house", "ev", "My house is near the park.", "Evim parkın yakınındadır.", "🏠"],
@@ -177,7 +176,7 @@
         ["mountain", "dağ", "The mountain is covered with snow.", "Dağ karla kaplıdır.", "🏔️"],
         ["ocean", "okyanus", "The ocean is vast and deep.", "Okyanus engin ve derindir.", "🌊"],
         ["beach", "plaj, kumsal", "We walked along the beach.", "Kumsal boyunca yürüdük.", "🏖️"],
-        ["street", "sokak, caddesi", "The street is very quiet tonight.", "Bu gece sokak çok sakin.", "🛣️"],
+        ["street", "sokak, cadde", "The street is very quiet tonight.", "Bu gece sokak çok sakin.", "🛣️"],
         ["friend", "arkadaş", "She is my best friend.", "O benim en iyi arkadaşımdır.", "🤝"],
         ["money", "para", "I need money to buy groceries.", "Market alışverişi için paraya ihtiyacım var.", "💵"],
         ["time", "zaman, vakit", "What time is it?", "Saat kaç?", "⏰"],
@@ -193,7 +192,7 @@
         ["market", "pazar, market", "I bought fruits from the market.", "Marketten meyve aldım.", "🛒"],
         ["airport", "havalimanı", "The plane landed at the airport.", "Uçak havalimanına indi.", "✈️"],
         ["hotel", "otel", "We stayed at a comfortable hotel.", "Konforlu bir otelde kaldık.", "🏨"],
-        ["restaurant", "restoran", "Let's eat dinner at a restaurant.", "Aşam yemeğini restoranda yiyelim.", "🍽️"],
+        ["restaurant", "restoran", "Let's eat dinner at a restaurant.", "Akşam yemeğini restoranda yiyelim.", "🍽️"],
         ["movie", "film", "We watched a comedy movie.", "Bir komedi filmi izledik.", "🎬"],
         ["lesson", "ders", "The English lesson starts at ten.", "İngilizce dersi saat onda başlıyor.", "📖"],
         ["journey", "yolculuk", "Have a safe journey!", "İyi yolculuklar!", "🧳"],
@@ -205,14 +204,14 @@
     ];
 
     let fullWordList = [];
-    rawVocabulary.forEach(item => {
+    realVocabulary.forEach(item => {
         fullWordList.push({ word: item[0], meaning: item[1], example: item[2], translation: item[3], icon: item[4] });
     });
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_real_vocab_db')) || {};
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_final_v3')) || {};
     let activeQueue = [];
-    let repeatQueue = [];
-    let currentIndexPointer = parseInt(localStorage.getItem('knn_real_ptr')) || 0;
+    let repeatQueue = []; 
+    let currentIndexPointer = parseInt(localStorage.getItem('knn_final_ptr_v3')) || 0;
 
     fullWordList.forEach((item, idx) => {
         const id = 'card_' + idx;
@@ -253,8 +252,8 @@
         repeatQueue = [];
     }
 
-    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_real_active_session'));
-    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_real_repeat_session'));
+    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_final_active_v3'));
+    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_final_repeat_v3'));
 
     if (activeSavedQueue && (activeSavedQueue.length > 0 || (repeatSavedQueue && repeatSavedQueue.length > 0))) {
         activeQueue = activeSavedQueue || [];
@@ -267,10 +266,10 @@
     let isFlipped = false;
 
     function saveData() {
-        localStorage.setItem('knn_anki_real_vocab_db', JSON.stringify(ankiData));
-        localStorage.setItem('knn_real_ptr', currentIndexPointer);
-        localStorage.setItem('knn_real_active_session', JSON.stringify(activeQueue));
-        localStorage.setItem('knn_real_repeat_session', JSON.stringify(repeatQueue));
+        localStorage.setItem('knn_anki_final_v3', JSON.stringify(ankiData));
+        localStorage.setItem('knn_final_ptr_v3', currentIndexPointer);
+        localStorage.setItem('knn_final_active_v3', JSON.stringify(activeQueue));
+        localStorage.setItem('knn_final_repeat_v3', JSON.stringify(repeatQueue));
     }
 
     function getMasteredCards() {
@@ -459,10 +458,7 @@
 
     function resetSystem() {
         if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {
-            localStorage.removeItem('knn_anki_real_vocab_db');
-            localStorage.removeItem('knn_real_ptr');
-            localStorage.removeItem('knn_real_active_session');
-            localStorage.removeItem('knn_real_repeat_session');
+            localStorage.clear();
             location.reload();
         }
     }
