@@ -125,6 +125,7 @@
 <script>
     const DAILY_LIMIT = 50;
 
+    // YÜZLERCE GERÇEK İNGİLİZCE KELİMEDEN OLUŞAN GENİŞ VERİ HAVUZU
     const realVocabulary = [
         ["book", "kitap", "I read a book every night.", "Her gece bir kitap okurum.", "📖"],
         ["water", "su", "I drink water every day.", "Her gün su içerim.", "💧"],
@@ -200,7 +201,44 @@
         ["future", "gelecek", "Plan your future carefully.", "Geleceğini dikkatlice planla.", "🔮"],
         ["history", "tarih", "I enjoy studying ancient history.", "Antik tarih okumaktan keyif alıyorum.", "📜"],
         ["nature", "doğa", "We should protect nature.", "Doğayı korumalıyız.", "🌿"],
-        ["health", "sağlık", "Health is more important than wealth.", "Sağlık zenginlikten daha önemlidir.", "🏥"]
+        ["health", "sağlık", "Health is more important than wealth.", "Sağlık zenginlikten daha önemlidir.", "🏥"],
+        ["advantage", "avantaj, üstünlük", "Speed is an advantage in sports.", "Hız, sporda bir avantajdır.", "⚡"],
+        ["advice", "tavsiye, öğüt", "Thank you for your advice.", "Tavsiyen için teşekkür ederim.", "💬"],
+        ["agreement", "anlaşma, sözleşme", "They signed a new agreement.", "Yeni bir anlaşma imzaladılar.", "📝"],
+        ["amount", "miktar, tutar", "A large amount of water was used.", "Büyük miktarda su kullanıldı.", "📊"],
+        ["application", "başvuru, uygulama", "Fill out the job application.", "İş başvurusunu doldurun.", "📋"],
+        ["attention", "dikkat, ilgi", "Pay attention to the teacher.", "Öğretmene dikkat edin.", "👀"],
+        ["attitude", "tutum, tavır", "He has a positive attitude.", "Onun olumlu bir tutumu var.", "😊"],
+        ["behavior", "davranış", "His behavior was very polite.", "Onun davranışı çok kibardı.", "🤝"],
+        ["business", "iş, ticaret", "She runs a small business.", "O küçük bir işletme çalıştırıyor.", "🏢"],
+        ["candidate", "aday", "He is a strong candidate.", "O güçlü bir adaydır.", "👤"],
+        ["century", "yüzyıl, asır", "We live in the twenty-first century.", "Yirmi birinci yüzyılda yaşıyoruz.", "🏛️"],
+        ["challenge", "zorluk, meydan okuma", "Accept the new challenge.", "Yeni zorluğu kabul et.", "🎯"],
+        ["character", "karakter, kişilik", "She has a brave character.", "Onun cesur bir karakteri var.", "🎭"],
+        ["choice", "seçim, tercih", "It is your choice.", "Bu senin seçimin.", "🔘"],
+        ["community", "topluluk, toplum", "We belong to a nice community.", "Güzel bir topluluğa aitiz.", "👥"],
+        ["company", "şirket, firma", "He works at an IT company.", "Bir bilişim şirketinde çalışıyor.", "🏭"],
+        ["condition", "durum, koşul", "The car is in good condition.", "Araba iyi durumdadır.", "🔧"],
+        ["culture", "kültür", "Explore different cultures.", "Farklı kültürleri keşfedin.", "🎨"],
+        ["customer", "müşteri", "The customer is always right.", "Müşteri her zaman haklıdır.", "🛍️"],
+        ["development", "gelişim, ilerleme", "Technology speeds up development.", "Teknoloji gelişimi hızlandırır.", "📈"],
+        ["difference", "fark, ayrım", "Can you spot the difference?", "Farkı tespit edebilir misin?", "🔍"],
+        ["direction", "yön, yol", "Which direction are we going?", "Hangi yöne gidiyoruz?", "🧭"],
+        ["education", "eğitim", "Education changes lives.", "Eğitim hayatları değiştirir.", "🎓"],
+        ["effort", "çaba, gayret", "It takes effort to succeed.", "Başarmak çaba gerektirir.", "💪"],
+        ["employee", "çalışan, eleman", "The company hired a new employee.", "Şirket yeni bir çalışan işe aldı.", "👔"],
+        ["environment", "çevre, ortam", "Protect the natural environment.", "Doğal çevreyi koruyun.", "🌱"],
+        ["equipment", "ekipman, teçhizat", "We need modern equipment.", "Modern ekipmanlara ihtiyacımız var.", "🛠️"],
+        ["evidence", "kanıt, delil", "There is no evidence of crime.", "Suça dair hiçbir kanıt yok.", "🔍"],
+        ["experience", "deneyim, tecrübe", "He has five years of experience.", "Beş yıllık tecrübesi var.", "🌟"],
+        ["freedom", "özgürlük", "Freedom is essential for happiness.", "Özgürlük mutluluk için esastır.", "🕊️"],
+        ["growth", "büyüme, gelişme", "Economic growth is slowing down.", "Ekonomik büyüme yavaşlıyor.", "📊"],
+        ["industry", "sanayi, endüstri", "The automotive industry is huge.", "Otomotiv sanayisi çok büyüktür.", "🏗️"],
+        ["knowledge", "bilgi, birikim", "Knowledge is power.", "Bilgi güçtür.", "🧠"],
+        ["opportunity", "fırsat, imkan", "Seize this great opportunity.", "Bu harika fırsatı yakala.", "🚀"],
+        ["relationship", "ilişki, bağ", "They have a good relationship.", "İyi bir ilişkileri var.", "🤝"],
+        ["solution", "çözüm", "We found a quick solution.", "Hızlı bir çözüm bulduk.", "💡"],
+        ["success", "başarı", "Hard work brings success.", "Çalışmak başarı getirir.", "🏆"]
     ];
 
     let fullWordList = [];
@@ -208,10 +246,10 @@
         fullWordList.push({ word: item[0], meaning: item[1], example: item[2], translation: item[3], icon: item[4] });
     });
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_v100')) || {};
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_big_db_v1')) || {};
     let activeQueue = [];
     let repeatQueue = []; 
-    let currentIndexPointer = parseInt(localStorage.getItem('knn_ptr_v100')) || 0;
+    let currentIndexPointer = parseInt(localStorage.getItem('knn_big_ptr_v1')) || 0;
 
     fullWordList.forEach((item, idx) => {
         const id = 'card_' + idx;
@@ -230,10 +268,10 @@
     });
 
     function saveData() {
-        localStorage.setItem('knn_anki_v100', JSON.stringify(ankiData));
-        localStorage.setItem('knn_ptr_v100', currentIndexPointer);
-        localStorage.setItem('knn_act_v100', JSON.stringify(activeQueue));
-        localStorage.setItem('knn_rep_v100', JSON.stringify(repeatQueue));
+        localStorage.setItem('knn_anki_big_db_v1', JSON.stringify(ankiData));
+        localStorage.setItem('knn_big_ptr_v1', currentIndexPointer);
+        localStorage.setItem('knn_big_act_v1', JSON.stringify(activeQueue));
+        localStorage.setItem('knn_big_rep_v1', JSON.stringify(repeatQueue));
     }
 
     function buildDailyQueue() {
@@ -257,8 +295,8 @@
         repeatQueue = [];
     }
 
-    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_act_v100'));
-    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_rep_v100'));
+    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_big_act_v1'));
+    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_big_rep_v1'));
 
     if (activeSavedQueue && (activeSavedQueue.length > 0 || (repeatSavedQueue && repeatSavedQueue.length > 0))) {
         activeQueue = activeSavedQueue || [];
