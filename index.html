@@ -1,490 +1,474 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="tr">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anki Pro (FSRS-4)</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .app-container { background: white; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 24px; text-align: center; position: relative; }
+        h1 { color: #1c1c1e; margin-top: 0; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .stats { color: #8e8e93; font-size: 13px; margin-bottom: 18px; display: flex; justify-content: space-between; font-weight: 600; }
+        
+        .card-wrapper { position: relative; width: 100%; }
+        .card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }
+        .card:hover { border-color: #007aff; }
+        
+        .card-icon { font-size: 80px; margin-bottom: 12px; line-height: 1; display: none; }
+        
+        .audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }
+        .audio-btn:active { transform: scale(0.92); }
+
+        .card-word { font-size: 28px; font-weight: 800; color: #1c1c1e; margin-bottom: 8px; }
+        .card-meaning { font-size: 18px; color: #3a3a3c; margin-bottom: 8px; display: none; font-weight: 600; }
+        .card-example { font-size: 13px; color: #007aff; background: #eef7ff; padding: 8px 12px; border-radius: 8px; display: none; font-weight: 500; margin-bottom: 6px; }
+        .card-translation { font-size: 13px; color: #34c759; background: #e8f8ec; padding: 8px 12px; border-radius: 8px; display: none; font-weight: 500; }
+        .hint { font-size: 12px; color: #8e8e93; margin-top: 10px; }
+        
+        .anki-buttons { display: none; gap: 8px; margin-top: 20px; }
+        .anki-btn { flex: 1; border: none; padding: 14px 6px; border-radius: 10px; color: white; font-weight: 700; font-size: 13px; cursor: pointer; transition: opacity 0.2s; }
+        .anki-btn:active { opacity: 0.7; }
+        .btn-again { background-color: #ff3b30; }
+        .btn-hard { background-color: #ff9500; }
+        .btn-good { background-color: #007aff; }
+        .btn-easy { background-color: #34c759; }
+
+        .show-answer-btn { background: #007aff; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; width: 100%; margin-top: 20px; cursor: pointer; }
+        .tools { display: flex; gap: 8px; margin-top: 15px; justify-content: center; flex-wrap: wrap; }
+        .tool-btn { background: #e5e5ea; color: #1c1c1e; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .tool-btn-primary { background: #5856d6; color: white; }
+        .tool-btn-nextday { background: #af52de; color: white; }
+        .reset { background: transparent; color: #ff3b30; border: none; margin-top: 15px; font-size: 11px; cursor: pointer; text-decoration: underline; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; padding: 16px; }
+        .modal-content { background: white; border-radius: 20px; width: 100%; max-width: 500px; height: 80vh; max-height: 600px; display: flex; flex-direction: column; padding: 20px; text-align: left; box-sizing: border-box; overflow: hidden; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5ea; padding-bottom: 12px; flex-shrink: 0; }
+        .modal-header h2 { margin: 0; font-size: 17px; color: #1c1c1e; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #8e8e93; line-height: 1; }
+        
+        .filter-bar { display: flex; gap: 6px; padding: 12px 0; overflow-x: auto; flex-shrink: 0; width: 100%; -webkit-overflow-scrolling: touch; border-bottom: 1px solid #f2f2f7; }
+        .filter-chip { border: 1px solid #e5e5ea; background: #f2f2f7; padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #1c1c1e; flex-shrink: 0; }
+        .filter-chip.active { background: #007aff; color: white; border-color: #007aff; }
+        
+        .word-list { overflow-y: auto; flex: 1; margin-top: 8px; padding-right: 4px; min-height: 0; }
+        .word-item { padding: 12px 0; border-bottom: 1px solid #f2f2f7; display: flex; justify-content: space-between; align-items: center; }
+        .word-item-info { flex: 1; }
+        .word-item-title { font-weight: 700; font-size: 15px; color: #1c1c1e; }
+        .word-item-sub { font-size: 12px; color: #8e8e93; margin-top: 2px; }
+        .word-item-actions { display: flex; align-items: center; gap: 8px; }
+        .delete-btn { background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; font-weight: 600; }
+        .badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; color: white; font-weight: 700; flex-shrink: 0; }
+        .badge-1 { background: #ff3b30; }
+        .badge-2 { background: #ff9500; }
+        .badge-3 { background: #007aff; }
+        .badge-4 { background: #34c759; }
+        .badge-0 { background: #8e8e93; }
+    </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="tr"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;title&gt;Anki Pro (FSRS-4)&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;style&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>* { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>body { background-color: #f2f2f7; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.app-container { background: white; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); width: 100%; max-width: 500px; padding: 24px; text-align: center; position: relative; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>h1 { color: #1c1c1e; margin-top: 0; font-size: 24px; font-weight: 700; margin-bottom: 6px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.stats { color: #8e8e93; font-size: 13px; margin-bottom: 18px; display: flex; justify-content: space-between; font-weight: 600; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card-wrapper { position: relative; width: 100%; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card { background: #ffffff; border: 2px solid #e5e5ea; border-radius: 16px; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; cursor: pointer; transition: all 0.2s ease; position: relative; user-select: none; overflow: hidden; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card:hover { border-color: #007aff; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card-icon { font-size: 80px; margin-bottom: 12px; line-height: 1; display: none; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.audio-btn { position: absolute; top: 12px; right: 12px; background: #007aff; color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; z-index: 99; box-shadow: 0 4px 12px rgba(0,122,255,0.4); }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.audio-btn:active { transform: scale(0.92); }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card-word { font-size: 28px; font-weight: 800; color: #1c1c1e; margin-bottom: 8px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card-meaning { font-size: 18px; color: #3a3a3c; margin-bottom: 8px; display: none; font-weight: 600; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card-example { font-size: 13px; color: #007aff; background: #eef7ff; padding: 8px 12px; border-radius: 8px; display: none; font-weight: 500; margin-bottom: 6px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.card-translation { font-size: 13px; color: #34c759; background: #e8f8ec; padding: 8px 12px; border-radius: 8px; display: none; font-weight: 500; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.hint { font-size: 12px; color: #8e8e93; margin-top: 10px; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.anki-buttons { display: none; gap: 8px; margin-top: 20px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.anki-btn { flex: 1; border: none; padding: 14px 6px; border-radius: 10px; color: white; font-weight: 700; font-size: 13px; cursor: pointer; transition: opacity 0.2s; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.anki-btn:active { opacity: 0.7; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-again { background-color: #ff3b30; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-hard { background-color: #ff9500; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-good { background-color: #007aff; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.btn-easy { background-color: #34c759; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.show-answer-btn { background: #007aff; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; width: 100%; margin-top: 20px; cursor: pointer; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.tools { display: flex; gap: 8px; margin-top: 15px; justify-content: center; flex-wrap: wrap; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.tool-btn { background: #e5e5ea; color: #1c1c1e; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.tool-btn-primary { background: #5856d6; color: white; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.tool-btn-nextday { background: #af52de; color: white; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.reset { background: transparent; color: #ff3b30; border: none; margin-top: 15px; font-size: 11px; cursor: pointer; text-decoration: underline; }</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; padding: 16px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.modal-content { background: white; border-radius: 20px; width: 100%; max-width: 500px; height: 80vh; max-height: 600px; display: flex; flex-direction: column; padding: 20px; text-align: left; box-sizing: border-box; overflow: hidden; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5ea; padding-bottom: 12px; flex-shrink: 0; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.modal-header h2 { margin: 0; font-size: 17px; color: #1c1c1e; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #8e8e93; line-height: 1; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.filter-bar { display: flex; gap: 6px; padding: 12px 0; overflow-x: auto; flex-shrink: 0; width: 100%; -webkit-overflow-scrolling: touch; border-bottom: 1px solid #f2f2f7; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.filter-chip { border: 1px solid #e5e5ea; background: #f2f2f7; padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; color: #1c1c1e; flex-shrink: 0; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.filter-chip.active { background: #007aff; color: white; border-color: #007aff; }</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>.word-list { overflow-y: auto; flex: 1; margin-top: 8px; padding-right: 4px; min-height: 0; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.word-item { padding: 12px 0; border-bottom: 1px solid #f2f2f7; display: flex; justify-content: space-between; align-items: center; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.word-item-info { flex: 1; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.word-item-title { font-weight: 700; font-size: 15px; color: #1c1c1e; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.word-item-sub { font-size: 12px; color: #8e8e93; margin-top: 2px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.word-item-actions { display: flex; align-items: center; gap: 8px; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.delete-btn { background: #ff3b30; color: white; border: none; border-radius: 6px; padding: 4px 8px; font-size: 11px; cursor: pointer; font-weight: 600; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; color: white; font-weight: 700; flex-shrink: 0; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.badge-1 { background: #ff3b30; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.badge-2 { background: #ff9500; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.badge-3 { background: #007aff; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.badge-4 { background: #34c759; }</p>
-<p class="p1"><span class="Apple-converted-space">        </span>.badge-0 { background: #8e8e93; }</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;div class="app-container"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;h1&gt;Anki Pro (FSRS)&lt;/h1&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="stats"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;span&gt;Günün Kalan Kartı: &lt;strong id="due-count" style="color:#007aff;"&gt;0&lt;/strong&gt;&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;span&gt;Öğrenilen: &lt;strong id="mastered-count" style="color:#34c759;"&gt;0&lt;/strong&gt;&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="card-wrapper"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="audio-btn" id="speak-btn" onclick="speakWord(event)" title="Telaffuzu Dinle"&gt;🔊&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="card" id="flashcard" onclick="showAnswer()"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div id="card-icon" class="card-icon"&gt;📖&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="card-word" id="word-text"&gt;Yükleniyor...&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="card-meaning" id="meaning-text"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="card-example" id="example-text"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="card-translation" id="translation-text"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;div class="hint" id="hint-text"&gt;Cevabı Görmek İçin Tıkla (Space)&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="show-answer-btn" id="main-show-btn" onclick="showAnswer()"&gt;Cevabı Göster (Space)&lt;/button&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="anki-buttons" id="anki-controls"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="anki-btn btn-again" onclick="processAnki(1)"&gt;Yeniden (1)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="anki-btn btn-hard" onclick="processAnki(2)"&gt;Zor (2)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="anki-btn btn-good" onclick="processAnki(3)"&gt;İyi (3)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="anki-btn btn-easy" onclick="processAnki(4)"&gt;Kolay (Kaldır)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="tools"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="tool-btn tool-btn-primary" onclick="openListModal()"&gt;📋 Kelime Listesi &amp; Filtreler&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;button class="tool-btn tool-btn-nextday" onclick="advanceToNextDay()"&gt;⏩ Yeni Güne Geç (Şifreli)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;button class="reset" onclick="resetSystem()"&gt;Tüm Anki Verilerini Sıfırla&lt;/button&gt;</p>
-<p class="p1">&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;div class="modal" id="list-modal"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="modal-content"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="modal-header"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;h2&gt;Günün Kelime Ayrıştırma Listesi&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="close-btn" onclick="closeListModal()"&gt;&amp;times;&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="filter-bar"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="filter-chip active" id="filter-all" onclick="filterList('all', this)"&gt;Tümü (0)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="filter-chip" id="filter-1" onclick="filterList(1, this)"&gt;🔴 Yeniden (0)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="filter-chip" id="filter-2" onclick="filterList(2, this)"&gt;🟠 Zor (0)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="filter-chip" id="filter-3" onclick="filterList(3, this)"&gt;🔵 İyi (0)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="filter-chip" id="filter-4" onclick="filterList(4, this)"&gt;🟢 Kolay (0)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>&lt;button class="filter-chip" id="filter-0" onclick="filterList(0, this)"&gt;⚪ Bakılmadı (0)&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;div class="word-list" id="modal-word-container"&gt;&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p1">&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;script&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const DAILY_LIMIT = 50;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>// GERÇEK A1-B1 KELİME VERİ TABANI (TÜMÜ ANLAMLI ÖRNEK CÜMLELERDİR)</p>
-<p class="p1"><span class="Apple-converted-space">    </span>const rawVocabulary = [</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["book", "kitap", "I read a book every night.", "Her gece bir kitap okurum.", "📖"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["water", "su", "I drink water every day.", "Her gün su içerim.", "💧"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["house", "ev", "My house is near the park.", "Evim parkın yakınındadır.", "🏠"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["car", "araba", "He drives a red car.", "O kırmızı bir araba sürer.", "🚗"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["phone", "telefon", "Where is my phone?", "Telefonum nerede?", "📱"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["apple", "elma", "An apple a day keeps the doctor away.", "Günde bir elma doktoru uzak tutar.", "🍎"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["cat", "kedi", "The cat is sleeping on the sofa.", "Kedi kanepede uyuyor.", "🐱"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["dog", "köpek", "The dog is running fast.", "Köpek hızlı koşuyor.", "🐶"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["tree", "ağaç", "There is a big tree in the garden.", "Bahçede büyük bir ağaç var.", "🌳"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["sun", "güneş", "The sun is shining today.", "Bugün güneş parlıyor.", "☀️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["coffee", "kahve", "I drink coffee every morning.", "Her sabah kahve içerim.", "☕"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["tea", "çay", "Would you like a cup of tea?", "Bir fincan çay ister misiniz?", "🍵"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["door", "kapı", "Please close the door.", "Lütfen kapıyı kapatın.", "🚪"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["room", "oda", "My room is clean.", "Odam temizdir.", "🛏️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["bread", "ekmek", "I buy fresh bread.", "Taze ekmek alırım.", "🍞"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["milk", "süt", "I drink a glass of milk.", "Bir bardak süt içerim.", "🥛"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["chair", "sandalye", "Sit on the chair.", "Sandalyeye otur.", "🪑"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["table", "masa", "The book is on the table.", "Kitap masanın üstündedir.", "🪵"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["pen", "kalem", "Write with a pen.", "Kalemle yaz.", "🖊️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["bag", "çanta", "My school bag is heavy.", "Okul çantam ağırdır.", "🎒"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["key", "anahtar", "Where is my key?", "Anahtarım nerede?", "🔑"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["bed", "yatak", "Go to bed early.", "Erkenden yatağa git.", "🛏️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["box", "kutu", "Open the wooden box.", "Ahşap kutuyu aç.", "📦"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["glass", "bardak", "A glass of water, please.", "Bir bardak su, lütfen.", "🥛"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["plate", "tabak", "The plate is clean.", "Tabak temizdir.", "🍽️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["fork", "çatal", "Use a fork to eat.", "Yemek için çatal kullan.", "🍴"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["spoon", "kaşık", "A spoon for the soup.", "Çorba için bir kaşık.", "🥄"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["knife", "bıçak", "Be careful with the knife.", "Bıçağa dikkat et.", "🔪"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["hat", "şapka", "He wears a black hat.", "O siyah bir şapka takar.", "🧢"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["coat", "palto, mont", "Put on your coat.", "Paltonu giy.", "🧥"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["desk", "çalışma masası", "Study at your desk.", "Çalışma masanda çalış.", "🖥️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["pencil", "kurşun kalem", "Draw with a pencil.", "Kurşun kalemle çiz.", "✏️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["map", "harita", "Look at the world map.", "Dünya haritasına bak.", "🗺️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["picture", "resim, fotoğraf", "This is a nice picture.", "Bu güzel bir resim.", "🖼️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["music", "müzik", "I love listening to music.", "Müzik dinlemeyi seviyorum.", "🎵"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["game", "oyun", "Let's play a game.", "Hadi bir oyun oynayalım.", "🎮"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["ball", "top", "Kick the ball.", "Topa vur.", "⚽"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["baby", "bebek", "The baby is sleeping.", "Bebek uyuyor.", "👶"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["doctor", "doktor", "You should see a doctor.", "Bir doktora görünmelisin.", "👨‍⚕️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["teacher", "öğretmen", "She is a good teacher.", "O iyi bir öğretmendir.", "👩‍🏫"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["student", "öğrenci", "He is a hardworking student.", "O çalışkan bir öğrencidir.", "🎓"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["family", "aile", "I love my family.", "Ailemi seviyorum.", "👨‍👩‍👧‍👦"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["father", "baba", "My father is at work.", "Babam iştedir.", "👨"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["mother", "anne", "My mother cooks well.", "Annem güzel yemek pişirir.", "👩"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["city", "şehir", "Istanbul is a big city.", "İstanbul büyük bir şehirdir.", "🏙️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["school", "okul", "Children go to school.", "Çocuklar okula gider.", "🏫"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["river", "nehir, ırmak", "The river flows quickly.", "Nehir hızlı akıyor.", "🌊"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["mountain", "dağ", "The mountain is covered with snow.", "Dağ karla kaplıdır.", "🏔️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["ocean", "okyanus", "The ocean is vast and deep.", "Okyanus engin ve derindir.", "🌊"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["beach", "plaj, kumsal", "We walked along the beach.", "Kumsal boyunca yürüdük.", "🏖️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["street", "sokak, caddesi", "The street is very quiet tonight.", "Bu gece sokak çok sakin.", "🛣️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["friend", "arkadaş", "She is my best friend.", "O benim en iyi arkadaşımdır.", "🤝"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["money", "para", "I need money to buy groceries.", "Market alışverişi için paraya ihtiyacım var.", "💵"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["time", "zaman, vakit", "What time is it?", "Saat kaç?", "⏰"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["work", "iş, çalışmak", "I have a lot of work today.", "Bugün çok işim var.", "💼"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["weather", "hava durumu", "The weather is nice today.", "Bugün hava güzel.", "🌤️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["answer", "cevap", "Do you know the answer?", "Cevabı biliyor musun?", "💡"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["question", "soru", "Can I ask a question?", "Bir soru sorabilir miyim?", "❓"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["problem", "sorun, problem", "We can solve this problem together.", "Bu sorunu birlikte çözebiliriz.", "🧩"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["story", "hikaye", "Tell me an interesting story.", "Bana ilginç bir hikaye anlat.", "📚"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["world", "dünya", "Travel around the world.", "Dünyayı dolaşın.", "🌍"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["country", "ülke", "Which country are you from?", "Hangi ülkedendensin?", "🏳️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["language", "dil", "English is a global language.", "İngilizce küresel bir dildir.", "🗣️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["market", "pazar, market", "I bought fruits from the market.", "Marketten meyve aldım.", "🛒"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["airport", "havalimanı", "The plane landed at the airport.", "Uçak havalimanına indi.", "✈️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["hotel", "otel", "We stayed at a comfortable hotel.", "Konforlu bir otelde kaldık.", "🏨"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["restaurant", "restoran", "Let's eat dinner at a restaurant.", "Aşam yemeğini restoranda yiyelim.", "🍽️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["movie", "film", "We watched a comedy movie.", "Bir komedi filmi izledik.", "🎬"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["lesson", "ders", "The English lesson starts at ten.", "İngilizce dersi saat onda başlıyor.", "📖"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["journey", "yolculuk", "Have a safe journey!", "İyi yolculuklar!", "🧳"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["decision", "karar", "It was a difficult decision.", "Zor bir karardı.", "⚖️"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["future", "gelecek", "Plan your future carefully.", "Geleceğini dikkatlice planla.", "🔮"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["history", "tarih", "I enjoy studying ancient history.", "Antik tarih okumaktan keyif alıyorum.", "📜"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["nature", "doğa", "We should protect nature.", "Doğayı korumalıyız.", "🌿"],</p>
-<p class="p1"><span class="Apple-converted-space">        </span>["health", "sağlık", "Health is more important than wealth.", "Sağlık zenginlikten daha önemlidir.", "🏥"]</p>
-<p class="p1"><span class="Apple-converted-space">    </span>];</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>let fullWordList = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>rawVocabulary.forEach(item =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>fullWordList.push({ word: item[0], meaning: item[1], example: item[2], translation: item[3], icon: item[4] });</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>let ankiData = JSON.parse(localStorage.getItem('knn_anki_real_vocab_db')) || {};</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let activeQueue = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let repeatQueue = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let currentIndexPointer = parseInt(localStorage.getItem('knn_real_ptr')) || 0;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>fullWordList.forEach((item, idx) =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const id = 'card_' + idx;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (!ankiData[id]) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>ankiData[id] = {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>id: id,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>index: idx,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>word: item.word,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>meaning: item.meaning,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>example: item.example,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>translation: item.translation,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>icon: item.icon,</p>
-<p class="p1"><span class="Apple-converted-space">                </span>lastGrade: 0</p>
-<p class="p1"><span class="Apple-converted-space">            </span>};</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>saveData();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function buildDailyQueue() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let againCards = Object.values(ankiData).filter(c =&gt; c.lastGrade === 1);</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>let newCards = [];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let fetched = 0;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let ptr = currentIndexPointer;</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>while (fetched &lt; DAILY_LIMIT &amp;&amp; ptr &lt; fullWordList.length) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let cardId = 'card_' + ptr;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>let card = ankiData[cardId];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (card &amp;&amp; card.lastGrade === 0) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>newCards.push(card);</p>
-<p class="p1"><span class="Apple-converted-space">                </span>fetched++;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">            </span>ptr++;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>activeQueue = [...newCards, ...againCards];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>repeatQueue = [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>let activeSavedQueue = JSON.parse(localStorage.getItem('knn_real_active_session'));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_real_repeat_session'));</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>if (activeSavedQueue &amp;&amp; (activeSavedQueue.length &gt; 0 || (repeatSavedQueue &amp;&amp; repeatSavedQueue.length &gt; 0))) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>activeQueue = activeSavedQueue || [];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>repeatQueue = repeatSavedQueue || [];</p>
-<p class="p1"><span class="Apple-converted-space">    </span>} else {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>buildDailyQueue();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>let currentCard = null;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>let isFlipped = false;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function saveData() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>localStorage.setItem('knn_anki_real_vocab_db', JSON.stringify(ankiData));</p>
-<p class="p1"><span class="Apple-converted-space">        </span>localStorage.setItem('knn_real_ptr', currentIndexPointer);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>localStorage.setItem('knn_real_active_session', JSON.stringify(activeQueue));</p>
-<p class="p1"><span class="Apple-converted-space">        </span>localStorage.setItem('knn_real_repeat_session', JSON.stringify(repeatQueue));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function getMasteredCards() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>return Object.values(ankiData).filter(c =&gt; c.lastGrade &gt;= 2).length;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function renderNextCard() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>let totalRemaining = activeQueue.length + repeatQueue.length;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('due-count').textContent = totalRemaining;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('mastered-count').textContent = getMasteredCards();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (activeQueue.length === 0 &amp;&amp; repeatQueue.length &gt; 0) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>activeQueue = [...repeatQueue];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>repeatQueue = [];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>saveData();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (activeQueue.length === 0) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('card-icon').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('word-text').textContent = "🎉 Bugünün Paketi Bitti!";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('speak-btn').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('meaning-text').textContent = "Günün tüm kelimelerini tamamladın.";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('meaning-text').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('example-text').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('translation-text').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('hint-text').textContent = "Yeni 50 kelime + dünden kalanlar için 'Yeni Güne Geç' butonunu kullanabilirsin.";</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('main-show-btn').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>document.getElementById('anki-controls').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>return;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>currentCard = activeQueue[0];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>isFlipped = false;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('card-icon').textContent = currentCard.icon || '💡';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('card-icon').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('word-text').textContent = currentCard.word;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('speak-btn').style.display = 'flex';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('meaning-text').textContent = currentCard.meaning;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('example-text').textContent = currentCard.example ? `Örnek: ${currentCard.example}` : '';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('translation-text').textContent = currentCard.translation ? `Türkçesi: ${currentCard.translation}` : '';</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('meaning-text').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('example-text').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('translation-text').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('hint-text').textContent = "Cevabı Görmek İçin Tıkla (Space)";</p>
-<p class="p2"><span class="Apple-converted-space">        </span></p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('main-show-btn').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('anki-controls').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function speakWord(event) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (event) event.stopPropagation();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (!currentCard || !currentCard.word) return;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>if ('speechSynthesis' in window) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>window.speechSynthesis.cancel();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const utterance = new SpeechSynthesisUtterance(currentCard.word);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>utterance.lang = 'en-US';</p>
-<p class="p1"><span class="Apple-converted-space">            </span>utterance.rate = 0.85;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>window.speechSynthesis.speak(utterance);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function showAnswer() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (!currentCard || isFlipped) return;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>isFlipped = true;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('card-icon').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('meaning-text').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (currentCard.example) document.getElementById('example-text').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (currentCard.translation) document.getElementById('translation-text').style.display = 'block';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('hint-text').textContent = "";</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('main-show-btn').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('anki-controls').style.display = 'flex';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function processAnki(grade) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (!currentCard || !isFlipped) return;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>let card = ankiData[currentCard.id];</p>
-<p class="p1"><span class="Apple-converted-space">        </span>card.lastGrade = grade;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const poppedCard = activeQueue.shift();</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (grade === 1) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>repeatQueue.push(poppedCard);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>saveData();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>renderNextCard();</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function deleteCardDirectly(cardId) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (confirm("Bu kelimeyi listeden kalıcı olarak silmek istediğine emin misin?")) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>delete ankiData[cardId];</p>
-<p class="p1"><span class="Apple-converted-space">            </span>activeQueue = activeQueue.filter(c =&gt; c.id !== cardId);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>repeatQueue = repeatQueue.filter(c =&gt; c.id !== cardId);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>saveData();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>renderNextCard();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>updateFilterCounts();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>filterList('all', document.querySelector('.filter-chip.active'));</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function advanceToNextDay() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const password = prompt("Yeni güne geçmek için şifreyi girin:");</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (password === "1213") {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>currentIndexPointer += DAILY_LIMIT;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>buildDailyQueue();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>saveData();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>renderNextCard();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>alert(`Başarılı! Yeni gün yüklendi. Sırada ${activeQueue.length} kelime var.`);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>} else if (password !== null) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>alert("Hatalı şifre! İşlem iptal edildi.");</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function updateFilterCounts() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>const counts = { all: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };</p>
-<p class="p1"><span class="Apple-converted-space">        </span>Object.values(ankiData).forEach(item =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const g = item.lastGrade || 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>counts.all++;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>counts[g]++;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('filter-all').textContent = `Tümü (${counts.all})`;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('filter-1').textContent = `🔴 Yeniden (${counts[1]})`;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('filter-2').textContent = `🟠 Zor (${counts[2]})`;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('filter-3').textContent = `🔵 İyi (${counts[3]})`;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('filter-4').textContent = `🟢 Kolay (${counts[4]})`;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('filter-0').textContent = `⚪ Bakılmadı (${counts[0]})`;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function openListModal() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('list-modal').style.display = 'flex';</p>
-<p class="p1"><span class="Apple-converted-space">        </span>updateFilterCounts();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>filterList('all', document.getElementById('filter-all'));</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function closeListModal() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.getElementById('list-modal').style.display = 'none';</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function filterList(filter, btn) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>document.querySelectorAll('.filter-chip').forEach(b =&gt; b.classList.remove('active'));</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (btn) btn.classList.add('active');</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const container = document.getElementById('modal-word-container');</p>
-<p class="p1"><span class="Apple-converted-space">        </span>container.innerHTML = '';</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>const labelMap = { 0: 'Bakılmadı', 1: 'Yeniden', 2: 'Zor', 3: 'İyi', 4: 'Kolay' };</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">        </span>Object.values(ankiData).sort((a,b) =&gt; a.index - b.index).forEach(item =&gt; {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>const grade = item.lastGrade || 0;</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (filter === 'all' || grade === filter) {</p>
-<p class="p1"><span class="Apple-converted-space">                </span>const div = document.createElement('div');</p>
-<p class="p1"><span class="Apple-converted-space">                </span>div.className = 'word-item';</p>
-<p class="p1"><span class="Apple-converted-space">                </span>div.innerHTML = `</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="word-item-info"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="word-item-title"&gt;${item.index + 1}. ${item.word}&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;div class="word-item-sub"&gt;${item.meaning}&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;div class="word-item-actions"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;span class="badge badge-${grade}"&gt;${labelMap[grade]}&lt;/span&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                        </span>&lt;button class="delete-btn" onclick="deleteCardDirectly('${item.id}')"&gt;Sil&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                    </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>`;</p>
-<p class="p1"><span class="Apple-converted-space">                </span>container.appendChild(div);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>}</p>
-<p class="p1"><span class="Apple-converted-space">        </span>});</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>document.addEventListener('keydown', function(e) {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (e.code === 'Space' || e.code === 'Enter') {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>e.preventDefault();</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (!isFlipped) showAnswer();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>} else if (isFlipped) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (e.key === '1') processAnki(1);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (e.key === '2') processAnki(2);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (e.key === '3') processAnki(3);</p>
-<p class="p1"><span class="Apple-converted-space">            </span>if (e.key === '4') processAnki(4);</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>});</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>function resetSystem() {</p>
-<p class="p1"><span class="Apple-converted-space">        </span>if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {</p>
-<p class="p1"><span class="Apple-converted-space">            </span>localStorage.removeItem('knn_anki_real_vocab_db');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>localStorage.removeItem('knn_real_ptr');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>localStorage.removeItem('knn_real_active_session');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>localStorage.removeItem('knn_real_repeat_session');</p>
-<p class="p1"><span class="Apple-converted-space">            </span>location.reload();</p>
-<p class="p1"><span class="Apple-converted-space">        </span>}</p>
-<p class="p1"><span class="Apple-converted-space">    </span>}</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>renderNextCard();</p>
-<p class="p1">&lt;/script&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+<div class="app-container">
+    <h1>Anki Pro (FSRS)</h1>
+    <div class="stats">
+        <span>Günün Kalan Kartı: <strong id="due-count" style="color:#007aff;">0</strong></span>
+        <span>Öğrenilen: <strong id="mastered-count" style="color:#34c759;">0</strong></span>
+    </div>
+
+    <div class="card-wrapper">
+        <button class="audio-btn" id="speak-btn" onclick="speakWord(event)" title="Telaffuzu Dinle">🔊</button>
+        <div class="card" id="flashcard" onclick="showAnswer()">
+            <div id="card-icon" class="card-icon">📖</div>
+            <div class="card-word" id="word-text">Yükleniyor...</div>
+            <div class="card-meaning" id="meaning-text"></div>
+            <div class="card-example" id="example-text"></div>
+            <div class="card-translation" id="translation-text"></div>
+            <div class="hint" id="hint-text">Cevabı Görmek İçin Tıkla (Space)</div>
+        </div>
+    </div>
+
+    <button class="show-answer-btn" id="main-show-btn" onclick="showAnswer()">Cevabı Göster (Space)</button>
+
+    <div class="anki-buttons" id="anki-controls">
+        <button class="anki-btn btn-again" onclick="processAnki(1)">Yeniden (1)</button>
+        <button class="anki-btn btn-hard" onclick="processAnki(2)">Zor (2)</button>
+        <button class="anki-btn btn-good" onclick="processAnki(3)">İyi (3)</button>
+        <button class="anki-btn btn-easy" onclick="processAnki(4)">Kolay (Kaldır)</button>
+    </div>
+
+    <div class="tools">
+        <button class="tool-btn tool-btn-primary" onclick="openListModal()">📋 Kelime Listesi & Filtreler</button>
+        <button class="tool-btn tool-btn-nextday" onclick="advanceToNextDay()">⏩ Yeni Güne Geç (Şifreli)</button>
+    </div>
+
+    <button class="reset" onclick="resetSystem()">Tüm Anki Verilerini Sıfırla</button>
+</div>
+
+<div class="modal" id="list-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Günün Kelime Ayrıştırma Listesi</h2>
+            <button class="close-btn" onclick="closeListModal()">&times;</button>
+        </div>
+        <div class="filter-bar">
+            <button class="filter-chip active" id="filter-all" onclick="filterList('all', this)">Tümü (0)</button>
+            <button class="filter-chip" id="filter-1" onclick="filterList(1, this)">🔴 Yeniden (0)</button>
+            <button class="filter-chip" id="filter-2" onclick="filterList(2, this)">🟠 Zor (0)</button>
+            <button class="filter-chip" id="filter-3" onclick="filterList(3, this)">🔵 İyi (0)</button>
+            <button class="filter-chip" id="filter-4" onclick="filterList(4, this)">🟢 Kolay (0)</button>
+            <button class="filter-chip" id="filter-0" onclick="filterList(0, this)">⚪ Bakılmadı (0)</button>
+        </div>
+        <div class="word-list" id="modal-word-container"></div>
+    </div>
+</div>
+
+<script>
+    const DAILY_LIMIT = 50;
+
+    // GERÇEK A1-B1 KELİME VERİ TABANI (TÜMÜ ANLAMLI ÖRNEK CÜMLELERDİR)
+    const rawVocabulary = [
+        ["book", "kitap", "I read a book every night.", "Her gece bir kitap okurum.", "📖"],
+        ["water", "su", "I drink water every day.", "Her gün su içerim.", "💧"],
+        ["house", "ev", "My house is near the park.", "Evim parkın yakınındadır.", "🏠"],
+        ["car", "araba", "He drives a red car.", "O kırmızı bir araba sürer.", "🚗"],
+        ["phone", "telefon", "Where is my phone?", "Telefonum nerede?", "📱"],
+        ["apple", "elma", "An apple a day keeps the doctor away.", "Günde bir elma doktoru uzak tutar.", "🍎"],
+        ["cat", "kedi", "The cat is sleeping on the sofa.", "Kedi kanepede uyuyor.", "🐱"],
+        ["dog", "köpek", "The dog is running fast.", "Köpek hızlı koşuyor.", "🐶"],
+        ["tree", "ağaç", "There is a big tree in the garden.", "Bahçede büyük bir ağaç var.", "🌳"],
+        ["sun", "güneş", "The sun is shining today.", "Bugün güneş parlıyor.", "☀️"],
+        ["coffee", "kahve", "I drink coffee every morning.", "Her sabah kahve içerim.", "☕"],
+        ["tea", "çay", "Would you like a cup of tea?", "Bir fincan çay ister misiniz?", "🍵"],
+        ["door", "kapı", "Please close the door.", "Lütfen kapıyı kapatın.", "🚪"],
+        ["room", "oda", "My room is clean.", "Odam temizdir.", "🛏️"],
+        ["bread", "ekmek", "I buy fresh bread.", "Taze ekmek alırım.", "🍞"],
+        ["milk", "süt", "I drink a glass of milk.", "Bir bardak süt içerim.", "🥛"],
+        ["chair", "sandalye", "Sit on the chair.", "Sandalyeye otur.", "🪑"],
+        ["table", "masa", "The book is on the table.", "Kitap masanın üstündedir.", "🪵"],
+        ["pen", "kalem", "Write with a pen.", "Kalemle yaz.", "🖊️"],
+        ["bag", "çanta", "My school bag is heavy.", "Okul çantam ağırdır.", "🎒"],
+        ["key", "anahtar", "Where is my key?", "Anahtarım nerede?", "🔑"],
+        ["bed", "yatak", "Go to bed early.", "Erkenden yatağa git.", "🛏️"],
+        ["box", "kutu", "Open the wooden box.", "Ahşap kutuyu aç.", "📦"],
+        ["glass", "bardak", "A glass of water, please.", "Bir bardak su, lütfen.", "🥛"],
+        ["plate", "tabak", "The plate is clean.", "Tabak temizdir.", "🍽️"],
+        ["fork", "çatal", "Use a fork to eat.", "Yemek için çatal kullan.", "🍴"],
+        ["spoon", "kaşık", "A spoon for the soup.", "Çorba için bir kaşık.", "🥄"],
+        ["knife", "bıçak", "Be careful with the knife.", "Bıçağa dikkat et.", "🔪"],
+        ["hat", "şapka", "He wears a black hat.", "O siyah bir şapka takar.", "🧢"],
+        ["coat", "palto, mont", "Put on your coat.", "Paltonu giy.", "🧥"],
+        ["desk", "çalışma masası", "Study at your desk.", "Çalışma masanda çalış.", "🖥️"],
+        ["pencil", "kurşun kalem", "Draw with a pencil.", "Kurşun kalemle çiz.", "✏️"],
+        ["map", "harita", "Look at the world map.", "Dünya haritasına bak.", "🗺️"],
+        ["picture", "resim, fotoğraf", "This is a nice picture.", "Bu güzel bir resim.", "🖼️"],
+        ["music", "müzik", "I love listening to music.", "Müzik dinlemeyi seviyorum.", "🎵"],
+        ["game", "oyun", "Let's play a game.", "Hadi bir oyun oynayalım.", "🎮"],
+        ["ball", "top", "Kick the ball.", "Topa vur.", "⚽"],
+        ["baby", "bebek", "The baby is sleeping.", "Bebek uyuyor.", "👶"],
+        ["doctor", "doktor", "You should see a doctor.", "Bir doktora görünmelisin.", "👨‍⚕️"],
+        ["teacher", "öğretmen", "She is a good teacher.", "O iyi bir öğretmendir.", "👩‍🏫"],
+        ["student", "öğrenci", "He is a hardworking student.", "O çalışkan bir öğrencidir.", "🎓"],
+        ["family", "aile", "I love my family.", "Ailemi seviyorum.", "👨‍👩‍👧‍👦"],
+        ["father", "baba", "My father is at work.", "Babam iştedir.", "👨"],
+        ["mother", "anne", "My mother cooks well.", "Annem güzel yemek pişirir.", "👩"],
+        ["city", "şehir", "Istanbul is a big city.", "İstanbul büyük bir şehirdir.", "🏙️"],
+        ["school", "okul", "Children go to school.", "Çocuklar okula gider.", "🏫"],
+        ["river", "nehir, ırmak", "The river flows quickly.", "Nehir hızlı akıyor.", "🌊"],
+        ["mountain", "dağ", "The mountain is covered with snow.", "Dağ karla kaplıdır.", "🏔️"],
+        ["ocean", "okyanus", "The ocean is vast and deep.", "Okyanus engin ve derindir.", "🌊"],
+        ["beach", "plaj, kumsal", "We walked along the beach.", "Kumsal boyunca yürüdük.", "🏖️"],
+        ["street", "sokak, caddesi", "The street is very quiet tonight.", "Bu gece sokak çok sakin.", "🛣️"],
+        ["friend", "arkadaş", "She is my best friend.", "O benim en iyi arkadaşımdır.", "🤝"],
+        ["money", "para", "I need money to buy groceries.", "Market alışverişi için paraya ihtiyacım var.", "💵"],
+        ["time", "zaman, vakit", "What time is it?", "Saat kaç?", "⏰"],
+        ["work", "iş, çalışmak", "I have a lot of work today.", "Bugün çok işim var.", "💼"],
+        ["weather", "hava durumu", "The weather is nice today.", "Bugün hava güzel.", "🌤️"],
+        ["answer", "cevap", "Do you know the answer?", "Cevabı biliyor musun?", "💡"],
+        ["question", "soru", "Can I ask a question?", "Bir soru sorabilir miyim?", "❓"],
+        ["problem", "sorun, problem", "We can solve this problem together.", "Bu sorunu birlikte çözebiliriz.", "🧩"],
+        ["story", "hikaye", "Tell me an interesting story.", "Bana ilginç bir hikaye anlat.", "📚"],
+        ["world", "dünya", "Travel around the world.", "Dünyayı dolaşın.", "🌍"],
+        ["country", "ülke", "Which country are you from?", "Hangi ülkedendensin?", "🏳️"],
+        ["language", "dil", "English is a global language.", "İngilizce küresel bir dildir.", "🗣️"],
+        ["market", "pazar, market", "I bought fruits from the market.", "Marketten meyve aldım.", "🛒"],
+        ["airport", "havalimanı", "The plane landed at the airport.", "Uçak havalimanına indi.", "✈️"],
+        ["hotel", "otel", "We stayed at a comfortable hotel.", "Konforlu bir otelde kaldık.", "🏨"],
+        ["restaurant", "restoran", "Let's eat dinner at a restaurant.", "Aşam yemeğini restoranda yiyelim.", "🍽️"],
+        ["movie", "film", "We watched a comedy movie.", "Bir komedi filmi izledik.", "🎬"],
+        ["lesson", "ders", "The English lesson starts at ten.", "İngilizce dersi saat onda başlıyor.", "📖"],
+        ["journey", "yolculuk", "Have a safe journey!", "İyi yolculuklar!", "🧳"],
+        ["decision", "karar", "It was a difficult decision.", "Zor bir karardı.", "⚖️"],
+        ["future", "gelecek", "Plan your future carefully.", "Geleceğini dikkatlice planla.", "🔮"],
+        ["history", "tarih", "I enjoy studying ancient history.", "Antik tarih okumaktan keyif alıyorum.", "📜"],
+        ["nature", "doğa", "We should protect nature.", "Doğayı korumalıyız.", "🌿"],
+        ["health", "sağlık", "Health is more important than wealth.", "Sağlık zenginlikten daha önemlidir.", "🏥"]
+    ];
+
+    let fullWordList = [];
+    rawVocabulary.forEach(item => {
+        fullWordList.push({ word: item[0], meaning: item[1], example: item[2], translation: item[3], icon: item[4] });
+    });
+
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_real_vocab_db')) || {};
+    let activeQueue = [];
+    let repeatQueue = [];
+    let currentIndexPointer = parseInt(localStorage.getItem('knn_real_ptr')) || 0;
+
+    fullWordList.forEach((item, idx) => {
+        const id = 'card_' + idx;
+        if (!ankiData[id]) {
+            ankiData[id] = {
+                id: id,
+                index: idx,
+                word: item.word,
+                meaning: item.meaning,
+                example: item.example,
+                translation: item.translation,
+                icon: item.icon,
+                lastGrade: 0
+            };
+        }
+    });
+
+    saveData();
+
+    function buildDailyQueue() {
+        let againCards = Object.values(ankiData).filter(c => c.lastGrade === 1);
+        
+        let newCards = [];
+        let fetched = 0;
+        let ptr = currentIndexPointer;
+        
+        while (fetched < DAILY_LIMIT && ptr < fullWordList.length) {
+            let cardId = 'card_' + ptr;
+            let card = ankiData[cardId];
+            if (card && card.lastGrade === 0) {
+                newCards.push(card);
+                fetched++;
+            }
+            ptr++;
+        }
+
+        activeQueue = [...newCards, ...againCards];
+        repeatQueue = [];
+    }
+
+    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_real_active_session'));
+    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_real_repeat_session'));
+
+    if (activeSavedQueue && (activeSavedQueue.length > 0 || (repeatSavedQueue && repeatSavedQueue.length > 0))) {
+        activeQueue = activeSavedQueue || [];
+        repeatQueue = repeatSavedQueue || [];
+    } else {
+        buildDailyQueue();
+    }
+
+    let currentCard = null;
+    let isFlipped = false;
+
+    function saveData() {
+        localStorage.setItem('knn_anki_real_vocab_db', JSON.stringify(ankiData));
+        localStorage.setItem('knn_real_ptr', currentIndexPointer);
+        localStorage.setItem('knn_real_active_session', JSON.stringify(activeQueue));
+        localStorage.setItem('knn_real_repeat_session', JSON.stringify(repeatQueue));
+    }
+
+    function getMasteredCards() {
+        return Object.values(ankiData).filter(c => c.lastGrade >= 2).length;
+    }
+
+    function renderNextCard() {
+        let totalRemaining = activeQueue.length + repeatQueue.length;
+        document.getElementById('due-count').textContent = totalRemaining;
+        document.getElementById('mastered-count').textContent = getMasteredCards();
+
+        if (activeQueue.length === 0 && repeatQueue.length > 0) {
+            activeQueue = [...repeatQueue];
+            repeatQueue = [];
+            saveData();
+        }
+
+        if (activeQueue.length === 0) {
+            document.getElementById('card-icon').style.display = 'none';
+            document.getElementById('word-text').textContent = "🎉 Bugünün Paketi Bitti!";
+            document.getElementById('speak-btn').style.display = 'none';
+            document.getElementById('meaning-text').textContent = "Günün tüm kelimelerini tamamladın.";
+            document.getElementById('meaning-text').style.display = 'block';
+            document.getElementById('example-text').style.display = 'none';
+            document.getElementById('translation-text').style.display = 'none';
+            document.getElementById('hint-text').textContent = "Yeni 50 kelime + dünden kalanlar için 'Yeni Güne Geç' butonunu kullanabilirsin.";
+            document.getElementById('main-show-btn').style.display = 'none';
+            document.getElementById('anki-controls').style.display = 'none';
+            return;
+        }
+
+        currentCard = activeQueue[0];
+        isFlipped = false;
+
+        document.getElementById('card-icon').textContent = currentCard.icon || '💡';
+        document.getElementById('card-icon').style.display = 'none';
+        document.getElementById('word-text').textContent = currentCard.word;
+        document.getElementById('speak-btn').style.display = 'flex';
+        document.getElementById('meaning-text').textContent = currentCard.meaning;
+        document.getElementById('example-text').textContent = currentCard.example ? `Örnek: ${currentCard.example}` : '';
+        document.getElementById('translation-text').textContent = currentCard.translation ? `Türkçesi: ${currentCard.translation}` : '';
+        
+        document.getElementById('meaning-text').style.display = 'none';
+        document.getElementById('example-text').style.display = 'none';
+        document.getElementById('translation-text').style.display = 'none';
+        document.getElementById('hint-text').textContent = "Cevabı Görmek İçin Tıkla (Space)";
+        
+        document.getElementById('main-show-btn').style.display = 'block';
+        document.getElementById('anki-controls').style.display = 'none';
+    }
+
+    function speakWord(event) {
+        if (event) event.stopPropagation();
+        if (!currentCard || !currentCard.word) return;
+
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(currentCard.word);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    function showAnswer() {
+        if (!currentCard || isFlipped) return;
+        isFlipped = true;
+
+        document.getElementById('card-icon').style.display = 'block';
+        document.getElementById('meaning-text').style.display = 'block';
+        if (currentCard.example) document.getElementById('example-text').style.display = 'block';
+        if (currentCard.translation) document.getElementById('translation-text').style.display = 'block';
+        document.getElementById('hint-text').textContent = "";
+
+        document.getElementById('main-show-btn').style.display = 'none';
+        document.getElementById('anki-controls').style.display = 'flex';
+    }
+
+    function processAnki(grade) {
+        if (!currentCard || !isFlipped) return;
+
+        let card = ankiData[currentCard.id];
+        card.lastGrade = grade;
+
+        const poppedCard = activeQueue.shift();
+
+        if (grade === 1) {
+            repeatQueue.push(poppedCard);
+        }
+
+        saveData();
+        renderNextCard();
+    }
+
+    function deleteCardDirectly(cardId) {
+        if (confirm("Bu kelimeyi listeden kalıcı olarak silmek istediğine emin misin?")) {
+            delete ankiData[cardId];
+            activeQueue = activeQueue.filter(c => c.id !== cardId);
+            repeatQueue = repeatQueue.filter(c => c.id !== cardId);
+            saveData();
+            renderNextCard();
+            updateFilterCounts();
+            filterList('all', document.querySelector('.filter-chip.active'));
+        }
+    }
+
+    function advanceToNextDay() {
+        const password = prompt("Yeni güne geçmek için şifreyi girin:");
+        if (password === "1213") {
+            currentIndexPointer += DAILY_LIMIT;
+            buildDailyQueue();
+            saveData();
+            renderNextCard();
+            alert(`Başarılı! Yeni gün yüklendi. Sırada ${activeQueue.length} kelime var.`);
+        } else if (password !== null) {
+            alert("Hatalı şifre! İşlem iptal edildi.");
+        }
+    }
+
+    function updateFilterCounts() {
+        const counts = { all: 0, 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+        Object.values(ankiData).forEach(item => {
+            const g = item.lastGrade || 0;
+            counts.all++;
+            counts[g]++;
+        });
+
+        document.getElementById('filter-all').textContent = `Tümü (${counts.all})`;
+        document.getElementById('filter-1').textContent = `🔴 Yeniden (${counts[1]})`;
+        document.getElementById('filter-2').textContent = `🟠 Zor (${counts[2]})`;
+        document.getElementById('filter-3').textContent = `🔵 İyi (${counts[3]})`;
+        document.getElementById('filter-4').textContent = `🟢 Kolay (${counts[4]})`;
+        document.getElementById('filter-0').textContent = `⚪ Bakılmadı (${counts[0]})`;
+    }
+
+    function openListModal() {
+        document.getElementById('list-modal').style.display = 'flex';
+        updateFilterCounts();
+        filterList('all', document.getElementById('filter-all'));
+    }
+
+    function closeListModal() {
+        document.getElementById('list-modal').style.display = 'none';
+    }
+
+    function filterList(filter, btn) {
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const container = document.getElementById('modal-word-container');
+        container.innerHTML = '';
+
+        const labelMap = { 0: 'Bakılmadı', 1: 'Yeniden', 2: 'Zor', 3: 'İyi', 4: 'Kolay' };
+
+        Object.values(ankiData).sort((a,b) => a.index - b.index).forEach(item => {
+            const grade = item.lastGrade || 0;
+            if (filter === 'all' || grade === filter) {
+                const div = document.createElement('div');
+                div.className = 'word-item';
+                div.innerHTML = `
+                    <div class="word-item-info">
+                        <div class="word-item-title">${item.index + 1}. ${item.word}</div>
+                        <div class="word-item-sub">${item.meaning}</div>
+                    </div>
+                    <div class="word-item-actions">
+                        <span class="badge badge-${grade}">${labelMap[grade]}</span>
+                        <button class="delete-btn" onclick="deleteCardDirectly('${item.id}')">Sil</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' || e.code === 'Enter') {
+            e.preventDefault();
+            if (!isFlipped) showAnswer();
+        } else if (isFlipped) {
+            if (e.key === '1') processAnki(1);
+            if (e.key === '2') processAnki(2);
+            if (e.key === '3') processAnki(3);
+            if (e.key === '4') processAnki(4);
+        }
+    });
+
+    function resetSystem() {
+        if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {
+            localStorage.removeItem('knn_anki_real_vocab_db');
+            localStorage.removeItem('knn_real_ptr');
+            localStorage.removeItem('knn_real_active_session');
+            localStorage.removeItem('knn_real_repeat_session');
+            location.reload();
+        }
+    }
+
+    renderNextCard();
+</script>
+
 </body>
 </html>
