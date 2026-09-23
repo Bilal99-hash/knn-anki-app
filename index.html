@@ -125,131 +125,195 @@
 <script>
     const DAILY_LIMIT = 50;
 
-    // YÜZLERCE GERÇEK İNGİLİZCE KELİMEDEN OLUŞAN GENİŞ VERİ HAVUZU
-    const realVocabulary = [
-        ["book", "kitap", "I read a book every night.", "Her gece bir kitap okurum.", "📖"],
-        ["water", "su", "I drink water every day.", "Her gün su içerim.", "💧"],
-        ["house", "ev", "My house is near the park.", "Evim parkın yakınındadır.", "🏠"],
-        ["car", "araba", "He drives a red car.", "O kırmızı bir araba sürer.", "🚗"],
-        ["phone", "telefon", "Where is my phone?", "Telefonum nerede?", "📱"],
-        ["apple", "elma", "An apple a day keeps the doctor away.", "Günde bir elma doktoru uzak tutar.", "🍎"],
-        ["cat", "kedi", "The cat is sleeping on the sofa.", "Kedi kanepede uyuyor.", "🐱"],
-        ["dog", "köpek", "The dog is running fast.", "Köpek hızlı koşuyor.", "🐶"],
-        ["tree", "ağaç", "There is a big tree in the garden.", "Bahçede büyük bir ağaç var.", "🌳"],
-        ["sun", "güneş", "The sun is shining today.", "Bugün güneş parlıyor.", "☀️"],
-        ["coffee", "kahve", "I drink coffee every morning.", "Her sabah kahve içerim.", "☕"],
-        ["tea", "çay", "Would you like a cup of tea?", "Bir fincan çay ister misiniz?", "🍵"],
-        ["door", "kapı", "Please close the door.", "Lütfen kapıyı kapatın.", "🚪"],
-        ["room", "oda", "My room is clean.", "Odam temizdir.", "🛏️"],
-        ["bread", "ekmek", "I buy fresh bread.", "Taze ekmek alırım.", "🍞"],
-        ["milk", "süt", "I drink a glass of milk.", "Bir bardak süt içerim.", "🥛"],
-        ["chair", "sandalye", "Sit on the chair.", "Sandalyeye otur.", "🪑"],
-        ["table", "masa", "The book is on the table.", "Kitap masanın üstündedir.", "🪵"],
-        ["pen", "kalem", "Write with a pen.", "Kalemle yaz.", "🖊️"],
-        ["bag", "çanta", "My school bag is heavy.", "Okul çantam ağırdır.", "🎒"],
-        ["key", "anahtar", "Where is my key?", "Anahtarım nerede?", "🔑"],
-        ["bed", "yatak", "Go to bed early.", "Erkenden yatağa git.", "🛏️"],
-        ["box", "kutu", "Open the wooden box.", "Ahşap kutuyu aç.", "📦"],
-        ["glass", "bardak", "A glass of water, please.", "Bir bardak su, lütfen.", "🥛"],
-        ["plate", "tabak", "The plate is clean.", "Tabak temizdir.", "🍽️"],
-        ["fork", "çatal", "Use a fork to eat.", "Yemek için çatal kullan.", "🍴"],
-        ["spoon", "kaşık", "A spoon for the soup.", "Çorba için bir kaşık.", "🥄"],
-        ["knife", "bıçak", "Be careful with the knife.", "Bıçağa dikkat et.", "🔪"],
-        ["hat", "şapka", "He wears a black hat.", "O siyah bir şapka takar.", "🧢"],
-        ["coat", "palto, mont", "Put on your coat.", "Paltonu giy.", "🧥"],
-        ["desk", "çalışma masası", "Study at your desk.", "Çalışma masanda çalış.", "🖥️"],
-        ["pencil", "kurşun kalem", "Draw with a pencil.", "Kurşun kalemle çiz.", "✏️"],
-        ["map", "harita", "Look at the world map.", "Dünya haritasına bak.", "🗺️"],
-        ["picture", "resim, fotoğraf", "This is a nice picture.", "Bu güzel bir resim.", "🖼️"],
-        ["music", "müzik", "I love listening to music.", "Müzik dinlemeyi seviyorum.", "🎵"],
-        ["game", "oyun", "Let's play a game.", "Hadi bir oyun oynayalım.", "🎮"],
-        ["ball", "top", "Kick the ball.", "Topa vur.", "⚽"],
-        ["baby", "bebek", "The baby is sleeping.", "Bebek uyuyor.", "👶"],
-        ["doctor", "doktor", "You should see a doctor.", "Bir doktora görünmelisin.", "👨‍⚕️"],
-        ["teacher", "öğretmen", "She is a good teacher.", "O iyi bir öğretmendir.", "👩‍🏫"],
-        ["student", "öğrenci", "He is a hardworking student.", "O çalışkan bir öğrencidir.", "🎓"],
-        ["family", "aile", "I love my family.", "Ailemi seviyorum.", "👨‍👩‍👧‍👦"],
-        ["father", "baba", "My father is at work.", "Babam iştedir.", "👨"],
-        ["mother", "anne", "My mother cooks well.", "Annem güzel yemek pişirir.", "👩"],
-        ["city", "şehir", "Istanbul is a big city.", "İstanbul büyük bir şehirdir.", "🏙️"],
-        ["school", "okul", "Children go to school.", "Çocuklar okula gider.", "🏫"],
-        ["river", "nehir, ırmak", "The river flows quickly.", "Nehir hızlı akıyor.", "🌊"],
-        ["mountain", "dağ", "The mountain is covered with snow.", "Dağ karla kaplıdır.", "🏔️"],
-        ["ocean", "okyanus", "The ocean is vast and deep.", "Okyanus engin ve derindir.", "🌊"],
-        ["beach", "plaj, kumsal", "We walked along the beach.", "Kumsal boyunca yürüdük.", "🏖️"],
-        ["street", "sokak, cadde", "The street is very quiet tonight.", "Bu gece sokak çok sakin.", "🛣️"],
-        ["friend", "arkadaş", "She is my best friend.", "O benim en iyi arkadaşımdır.", "🤝"],
-        ["money", "para", "I need money to buy groceries.", "Market alışverişi için paraya ihtiyacım var.", "💵"],
-        ["time", "zaman, vakit", "What time is it?", "Saat kaç?", "⏰"],
-        ["work", "iş, çalışmak", "I have a lot of work today.", "Bugün çok işim var.", "💼"],
-        ["weather", "hava durumu", "The weather is nice today.", "Bugün hava güzel.", "🌤️"],
-        ["answer", "cevap", "Do you know the answer?", "Cevabı biliyor musun?", "💡"],
-        ["question", "soru", "Can I ask a question?", "Bir soru sorabilir miyim?", "❓"],
-        ["problem", "sorun, problem", "We can solve this problem together.", "Bu sorunu birlikte çözebiliriz.", "🧩"],
-        ["story", "hikaye", "Tell me an interesting story.", "Bana ilginç bir hikaye anlat.", "📚"],
-        ["world", "dünya", "Travel around the world.", "Dünyayı dolaşın.", "🌍"],
-        ["country", "ülke", "Which country are you from?", "Hangi ülkedendensin?", "🏳️"],
-        ["language", "dil", "English is a global language.", "İngilizce küresel bir dildir.", "🗣️"],
-        ["market", "pazar, market", "I bought fruits from the market.", "Marketten meyve aldım.", "🛒"],
-        ["airport", "havalimanı", "The plane landed at the airport.", "Uçak havalimanına indi.", "✈️"],
-        ["hotel", "otel", "We stayed at a comfortable hotel.", "Konforlu bir otelde kaldık.", "🏨"],
-        ["restaurant", "restoran", "Let's eat dinner at a restaurant.", "Akşam yemeğini restoranda yiyelim.", "🍽️"],
-        ["movie", "film", "We watched a comedy movie.", "Bir komedi filmi izledik.", "🎬"],
-        ["lesson", "ders", "The English lesson starts at ten.", "İngilizce dersi saat onda başlıyor.", "📖"],
-        ["journey", "yolculuk", "Have a safe journey!", "İyi yolculuklar!", "🧳"],
-        ["decision", "karar", "It was a difficult decision.", "Zor bir karardı.", "⚖️"],
-        ["future", "gelecek", "Plan your future carefully.", "Geleceğini dikkatlice planla.", "🔮"],
-        ["history", "tarih", "I enjoy studying ancient history.", "Antik tarih okumaktan keyif alıyorum.", "📜"],
-        ["nature", "doğa", "We should protect nature.", "Doğayı korumalıyız.", "🌿"],
-        ["health", "sağlık", "Health is more important than wealth.", "Sağlık zenginlikten daha önemlidir.", "🏥"],
-        ["advantage", "avantaj, üstünlük", "Speed is an advantage in sports.", "Hız, sporda bir avantajdır.", "⚡"],
-        ["advice", "tavsiye, öğüt", "Thank you for your advice.", "Tavsiyen için teşekkür ederim.", "💬"],
-        ["agreement", "anlaşma, sözleşme", "They signed a new agreement.", "Yeni bir anlaşma imzaladılar.", "📝"],
-        ["amount", "miktar, tutar", "A large amount of water was used.", "Büyük miktarda su kullanıldı.", "📊"],
-        ["application", "başvuru, uygulama", "Fill out the job application.", "İş başvurusunu doldurun.", "📋"],
-        ["attention", "dikkat, ilgi", "Pay attention to the teacher.", "Öğretmene dikkat edin.", "👀"],
-        ["attitude", "tutum, tavır", "He has a positive attitude.", "Onun olumlu bir tutumu var.", "😊"],
-        ["behavior", "davranış", "His behavior was very polite.", "Onun davranışı çok kibardı.", "🤝"],
-        ["business", "iş, ticaret", "She runs a small business.", "O küçük bir işletme çalıştırıyor.", "🏢"],
-        ["candidate", "aday", "He is a strong candidate.", "O güçlü bir adaydır.", "👤"],
-        ["century", "yüzyıl, asır", "We live in the twenty-first century.", "Yirmi birinci yüzyılda yaşıyoruz.", "🏛️"],
-        ["challenge", "zorluk, meydan okuma", "Accept the new challenge.", "Yeni zorluğu kabul et.", "🎯"],
-        ["character", "karakter, kişilik", "She has a brave character.", "Onun cesur bir karakteri var.", "🎭"],
-        ["choice", "seçim, tercih", "It is your choice.", "Bu senin seçimin.", "🔘"],
-        ["community", "topluluk, toplum", "We belong to a nice community.", "Güzel bir topluluğa aitiz.", "👥"],
-        ["company", "şirket, firma", "He works at an IT company.", "Bir bilişim şirketinde çalışıyor.", "🏭"],
-        ["condition", "durum, koşul", "The car is in good condition.", "Araba iyi durumdadır.", "🔧"],
-        ["culture", "kültür", "Explore different cultures.", "Farklı kültürleri keşfedin.", "🎨"],
-        ["customer", "müşteri", "The customer is always right.", "Müşteri her zaman haklıdır.", "🛍️"],
-        ["development", "gelişim, ilerleme", "Technology speeds up development.", "Teknoloji gelişimi hızlandırır.", "📈"],
-        ["difference", "fark, ayrım", "Can you spot the difference?", "Farkı tespit edebilir misin?", "🔍"],
-        ["direction", "yön, yol", "Which direction are we going?", "Hangi yöne gidiyoruz?", "🧭"],
-        ["education", "eğitim", "Education changes lives.", "Eğitim hayatları değiştirir.", "🎓"],
-        ["effort", "çaba, gayret", "It takes effort to succeed.", "Başarmak çaba gerektirir.", "💪"],
-        ["employee", "çalışan, eleman", "The company hired a new employee.", "Şirket yeni bir çalışan işe aldı.", "👔"],
-        ["environment", "çevre, ortam", "Protect the natural environment.", "Doğal çevreyi koruyun.", "🌱"],
-        ["equipment", "ekipman, teçhizat", "We need modern equipment.", "Modern ekipmanlara ihtiyacımız var.", "🛠️"],
-        ["evidence", "kanıt, delil", "There is no evidence of crime.", "Suça dair hiçbir kanıt yok.", "🔍"],
-        ["experience", "deneyim, tecrübe", "He has five years of experience.", "Beş yıllık tecrübesi var.", "🌟"],
-        ["freedom", "özgürlük", "Freedom is essential for happiness.", "Özgürlük mutluluk için esastır.", "🕊️"],
-        ["growth", "büyüme, gelişme", "Economic growth is slowing down.", "Ekonomik büyüme yavaşlıyor.", "📊"],
-        ["industry", "sanayi, endüstri", "The automotive industry is huge.", "Otomotiv sanayisi çok büyüktür.", "🏗️"],
-        ["knowledge", "bilgi, birikim", "Knowledge is power.", "Bilgi güçtür.", "🧠"],
-        ["opportunity", "fırsat, imkan", "Seize this great opportunity.", "Bu harika fırsatı yakala.", "🚀"],
-        ["relationship", "ilişki, bağ", "They have a good relationship.", "İyi bir ilişkileri var.", "🤝"],
-        ["solution", "çözüm", "We found a quick solution.", "Hızlı bir çözüm bulduk.", "💡"],
-        ["success", "başarı", "Hard work brings success.", "Çalışmak başarı getirir.", "🏆"]
+    const baseSeeds = [
+        ["book","kitap","I read a book every night.","Her gece bir kitap okurum.","📖"],
+        ["water","su","I drink water every day.","Her gün su içerim.","💧"],
+        ["house","ev","My house is near the park.","Evim parkın yakınındadır.","🏠"],
+        ["car","araba","He drives a red car.","O kırmızı bir araba sürer.","🚗"],
+        ["phone","telefon","Where is my phone?","Telefonum nerede?","📱"],
+        ["apple","elma","An apple a day keeps the doctor away.","Günde bir elma doktoru uzak tutar.","🍎"],
+        ["cat","kedi","The cat is sleeping on the sofa.","Kedi kanepede uyuyor.","🐱"],
+        ["dog","köpek","The dog is running fast.","Köpek hızlı koşuyor.","🐶"],
+        ["tree","ağaç","There is a big tree in the garden.","Bahçede büyük bir ağaç var.","🌳"],
+        ["sun","güneş","The sun is shining today.","Bugün güneş parlıyor.","☀️"],
+        ["coffee","kahve","I drink coffee every morning.","Her sabah kahve içerim.","☕"],
+        ["tea","çay","Would you like a cup of tea?","Bir fincan çay ister misiniz?","🍵"],
+        ["door","kapı","Please close the door.","Lütfen kapıyı kapatın.","🚪"],
+        ["room","oda","My room is clean.","Odam temizdir.","🛏️"],
+        ["bread","ekmek","I buy fresh bread.","Taze ekmek alırım.","🍞"],
+        ["milk","süt","I drink a glass of milk.","Bir bardak süt içerim.","🥛"],
+        ["chair","sandalye","Sit on the chair.","Sandalyeye otur.","🪑"],
+        ["table","masa","The book is on the table.","Kitap masanın üstündedir.","🪵"],
+        ["pen","kalem","Write with a pen.","Kalemle yaz.","🖊️"],
+        ["bag","çanta","My school bag is heavy.","Okul çantam ağırdır.","🎒"],
+        ["key","anahtar","Where is my key?","Anahtarım nerede?","🔑"],
+        ["bed","yatak","Go to bed early.","Erkenden yatağa git.","🛏️"],
+        ["box","kutu","Open the wooden box.","Ahşap kutuyu aç.","📦"],
+        ["glass","bardak","A glass of water, please.","Bir bardak su, lütfen.","🥛"],
+        ["plate","tabak","The plate is clean.","Tabak temizdir.","🍽️"],
+        ["fork","çatal","Use a fork to eat.","Yemek için çatal kullan.","🍴"],
+        ["spoon","kaşık","A spoon for the soup.","Çorba için bir kaşık.","🥄"],
+        ["knife","bıçak","Be careful with the knife.","Bıçağa dikkat et.","🔪"],
+        ["hat","şapka","He wears a black hat.","O siyah bir şapka takar.","🧢"],
+        ["coat","palto, mont","Put on your coat.","Paltonu giy.","🧥"],
+        ["desk","çalışma masası","Study at your desk.","Çalışma masanda çalış.","🖥️"],
+        ["pencil","kurşun kalem","Draw with a pencil.","Kurşun kalemle çiz.","✏️"],
+        ["map","harita","Look at the world map.","Dünya haritasına bak.","🗺️"],
+        ["picture","resim, fotoğraf","This is a nice picture.","Bu güzel bir resim.","🖼️"],
+        ["music","müzik","I love listening to music.","Müzik dinlemeyi seviyorum.","🎵"],
+        ["game","oyun","Let's play a game.","Hadi bir oyun oynayalım.","🎮"],
+        ["ball","top","Kick the ball.","Topa vur.","⚽"],
+        ["baby","bebek","The baby is sleeping.","Bebek uyuyor.","👶"],
+        ["doctor","doktor","You should see a doctor.","Bir doktora görünmelisin.","👨‍⚕️"],
+        ["teacher","öğretmen","She is a good teacher.","O iyi bir öğretmendir.","👩‍🏫"],
+        ["student","öğrenci","He is a hardworking student.","O çalışkan bir öğrencidir.","🎓"],
+        ["family","aile","I love my family.","Ailemi seviyorum.","👨‍👩‍👧‍👦"],
+        ["father","baba","My father is at work.","Babam iştedir.","👨"],
+        ["mother","anne","My mother cooks well.","Annem güzel yemek pişirir.","👩"],
+        ["city","şehir","Istanbul is a big city.","İstanbul büyük bir şehirdir.","🏙️"],
+        ["school","okul","Children go to school.","Çocuklar okula gider.","🏫"],
+        ["river","nehir, ırmak","The river flows quickly.","Nehir hızlı akıyor.","🌊"],
+        ["mountain","dağ","The mountain is covered with snow.","Dağ karla kaplıdır.","🏔️"],
+        ["ocean","okyanus","The ocean is vast and deep.","Okyanus engin ve derindir.","🌊"],
+        ["beach","plaj, kumsal","We walked along the beach.","Kumsal boyunca yürüdük.","🏖️"],
+        ["street","sokak, cadde","The street is very quiet tonight.","Bu gece sokak çok sakin.","🛣️"],
+        ["friend","arkadaş","She is my best friend.","O benim en iyi arkadaşımdır.","🤝"],
+        ["money","para","I need money to buy groceries.","Market alışverişi için paraya ihtiyacım var.","💵"],
+        ["time","zaman, vakit","What time is it?","Saat kaç?","⏰"],
+        ["work","iş, çalışmak","I have a lot of work today.","Bugün çok işim var.","💼"],
+        ["weather","hava durumu","The weather is nice today.","Bugün hava güzel.","🌤️"],
+        ["answer","cevap","Do you know the answer?","Cevabı biliyor musun?","💡"],
+        ["question","soru","Can I ask a question?","Bir soru sorabilir miyim?","❓"],
+        ["problem","sorun, problem","We can solve this problem together.","Bu sorunu birlikte çözebiliriz.","🧩"],
+        ["story","hikaye","Tell me an interesting story.","Bana ilginç bir hikaye anlat.","📚"],
+        ["world","dünya","Travel around the world.","Dünyayı dolaşın.","🌍"],
+        ["country","ülke","Which country are you from?","Hangi ülkedendensin?","🏳️"],
+        ["language","dil","English is a global language.","İngilizce küresel bir dildir.","🗣️"],
+        ["market","pazar, market","I bought fruits from the market.","Marketten meyve aldım.","🛒"],
+        ["airport","havalimanı","The plane landed at the airport.","Uçak havalimanına indi.","✈️"],
+        ["hotel","otel","We stayed at a comfortable hotel.","Konforlu bir otelde kaldık.","🏨"],
+        ["restaurant","restoran","Let's eat dinner at a restaurant.","Akşam yemeğini restoranda yiyelim.","🍽️"],
+        ["movie","film","We watched a comedy movie.","Bir komedi filmi izledik.","🎬"],
+        ["lesson","ders","The English lesson starts at ten.","İngilizce dersi saat onda başlıyor.","📖"],
+        ["journey","yolculuk","Have a safe journey!","İyi yolculuklar!","🧳"],
+        ["decision","karar","It was a difficult decision.","Zor bir karardı.","⚖️"],
+        ["future","gelecek","Plan your future carefully.","Geleceğini dikkatlice planla.","🔮"],
+        ["history","tarih","I enjoy studying ancient history.","Antik tarih okumaktan keyif alıyorum.","📜"],
+        ["nature","doğa","We should protect nature.","Doğayı korumalıyız.","🌿"],
+        ["health","sağlık","Health is more important than wealth.","Sağlık zenginlikten daha önemlidir.","🏥"],
+        ["advantage","avantaj, üstünlük","Speed is an advantage in sports.","Hız, sporda bir avantajdır.","⚡"],
+        ["advice","tavsiye, öğüt","Thank you for your advice.","Tavsiyen için teşekkür ederim.","💬"],
+        ["agreement","anlaşma, sözleşme","They signed a new agreement.","Yeni bir anlaşma imzaladılar.","📝"],
+        ["amount","miktar, tutar","A large amount of water was used.","Büyük miktarda su kullanıldı.","📊"],
+        ["application","başvuru, uygulama","Fill out the job application.","İş başvurusunu doldurun.","📋"],
+        ["attention","dikkat, ilgi","Pay attention to the teacher.","Öğretmene dikkat edin.","👀"],
+        ["attitude","tutum, tavır","He has a positive attitude.","Onun olumlu bir tutumu var.","😊"],
+        ["behavior","davranış","His behavior was very polite.","Onun davranışı çok kibardı.","🤝"],
+        ["business","iş, ticaret","She runs a small business.","O küçük bir işletme çalıştırıyor.","🏢"],
+        ["candidate","aday","He is a strong candidate.","O güçlü bir adaydır.","👤"],
+        ["century","yüzyıl, asır","We live in the twenty-first century.","Yirmi birinci yüzyılda yaşıyoruz.","🏛️"],
+        ["challenge","zorluk, meydan okuma","Accept the new challenge.","Yeni zorluğu kabul et.","🎯"],
+        ["character","karakter, kişilik","She has a brave character.","Onun cesur bir karakteri var.","🎭"],
+        ["choice","seçim, tercih","It is your choice.","Bu senin seçimin.","🔘"],
+        ["community","topluluk, toplum","We belong to a nice community.","Güzel bir topluluğa aitiz.","👥"],
+        ["company","şirket, firma","He works at an IT company.","Bir bilişim şirketinde çalışıyor.","🏭"],
+        ["condition","durum, koşul","The car is in good condition.","Araba iyi durumdadır.","🔧"],
+        ["culture","kültür","Explore different cultures.","Farklı kültürleri keşfedin.","🎨"],
+        ["customer","müşteri","The customer is always right.","Müşteri her zaman haklıdır.","🛍️"],
+        ["development","gelişim, ilerleme","Technology speeds up development.","Teknoloji gelişimi hızlandırır.","📈"],
+        ["difference","fark, ayrım","Can you spot the difference?","Farkı tespit edebilir misin?","🔍"],
+        ["direction","yön, yol","Which direction are we going?","Hangi yöne gidiyoruz?","🧭"],
+        ["education","eğitim","Education changes lives.","Eğitim hayatları değiştirir.","🎓"],
+        ["effort","çaba, gayret","It takes effort to succeed.","Başarmak çaba gerektirir.","💪"],
+        ["employee","çalışan, eleman","The company hired a new employee.","Şirket yeni bir çalışan işe aldı.","👔"],
+        ["environment","çevre, ortam","Protect the natural environment.","Doğal çevreyi koruyun.","🌱"],
+        ["equipment","ekipman, teçhizat","We need modern equipment.","Modern ekipmanlara ihtiyacımız var.","🛠️"],
+        ["evidence","kanıt, delil","There is no evidence of crime.","Suça dair hiçbir kanıt yok.","🔍"],
+        ["experience","deneyim, tecrübe","He has five years of experience.","Beş yıllık tecrübesi var.","🌟"],
+        ["freedom","özgürlük","Freedom is essential for happiness.","Özgürlük mutluluk için esastır.","🕊️"],
+        ["growth","büyüme, gelişme","Economic growth is slowing down.","Ekonomik büyüme yavaşlıyor.","📊"],
+        ["industry","sanayi, endüstri","The automotive industry is huge.","Otomotiv sanayisi çok büyüktür.","🏗️"],
+        ["knowledge","bilgi, birikim","Knowledge is power.","Bilgi güçtür.","🧠"],
+        ["opportunity","fırsat, imkan","Seize this great opportunity.","Bu harika fırsatı yakala.","🚀"],
+        ["relationship","ilişki, bağ","They have a good relationship.","İyi bir ilişkileri var.","🤝"],
+        ["solution","çözüm","We found a quick solution.","Hızlı bir çözüm bulduk.","💡"],
+        ["success","başarı","Hard work brings success.","Çalışmak başarı getirir.","🏆"]
+    ];
+
+    const extraDictionary = [
+        ["abandon","terk etmek","Never abandon your dreams.","Hayallerini asla terk etme.","🏃"],
+        ["ability","yetenek","He has a great ability.","Onun harika bir yeteneği var.","✨"],
+        ["abroad","yurt dışı","She wants to study abroad.","Yurt dışında okumak istiyor.","✈️"],
+        ["absence","yokluk","His absence was noticed.","Yokluğu fark edildi.","👻"],
+        ["absolute","mutlak, kesin","We have absolute trust.","Mutlak bir güvenimiz var.","💯"],
+        ["absorb","emmek","Plants absorb water.","Bitkiler suyu emer.","🧽"],
+        ["academic","akademik","She has academic goals.","Onun akademik hedefleri var.","🎓"],
+        ["accept","kabul etmek","Accept my invitation.","Davetimi kabul et.","🤝"],
+        ["access","erişim","Free internet access.","Ücretsiz internet erişimi.","🔑"],
+        ["accident","kaza","Avoid any accident.","Kazadan kaçının.","⚠️"],
+        ["accompany","eşlik etmek","I will accompany you.","Sana eşlik edeceğim.","🚶‍♂️"],
+        ["accomplish","başarmak","We can accomplish it.","Bunu başarabiliriz.","🎯"],
+        ["according","göre","According to the rule.","Kurala göre.","📊"],
+        ["account","hesap","Create a new account.","Yeni bir hesap oluşturun.","💳"],
+        ["accurate","doğru","The data is accurate.","Veri doğrudur.","🎯"],
+        ["achieve","ulaşmak","Achieve your targets.","Hedeflerine ulaş.","🏆"],
+        ["acknowledge","kabul etmek","He acknowledged it.","Bunu kabul etti.","🗣️"],
+        ["acquire","edinmek","Acquire new skills.","Yeni beceriler edin.","🧠"],
+        ["action","eylem","Take quick action.","Hızlı eyleme geç.","🎬"],
+        ["active","aktif","Stay active every day.","Her gün aktif kal.","🏃‍♀️"],
+        ["adapt","uyum sağlamak","Adapt to changes.","Değişikliklere uyum sağla.","🦎"],
+        ["addition","ekleme","In addition to this.","Buna ek olarak.","➕"],
+        ["address","adres","Tell me your address.","Bana adresini söyle.","📍"],
+        ["adequate","yeterli","Water supply is adequate.","Su tedariki yeterli.","👍"],
+        ["adjust","ayarlamak","Adjust your seat.","Koltuk ayarını yap.","⚙️"],
+        ["admire","hayran olmak","I admire your strength.","Gücüne hayranım.","🌟"],
+        ["admit","itiraf etmek","He admitted the truth.","Gerçeği itiraf etti.","💬"],
+        ["adopt","sahiplenmek","Adopt a homeless pet.","Evsiz bir hayvan sahiplen.","🐾"],
+        ["advance","ilerlemek","Technology advances fast.","Teknoloji hızlı ilerliyor.","🚀"],
+        ["adventure","macera","Enjoy the adventure.","Maceranın tadını çıkar.","🏔️"],
+        ["advertise","reklam yapmak","They advertise online.","İnternette reklam yapıyorlar.","📢"],
+        ["affect","etkilemek","Rain affects traffic.","Yağmur trafiği etkiler.","🌦️"],
+        ["afford","gücü yetmek","I can afford this.","Buna gücüm yeter.","💰"],
+        ["agency","ajans","Call the travel agency.","Seyahat ajansını ara.","🏢"],
+        ["agree","katılmak","I agree with you.","Sana katılıyorum.","👍"],
+        ["aim","hedeflemek","Aim for the best.","En iyisini hedefle.","🎯"],
+        ["alarm","alarm","Set the morning alarm.","Sabah alarmını kur.","⏰"],
+        ["allow","izin vermek","Do not allow this.","Buna izin verme.","🟢"],
+        ["almost","neredeyse","It is almost done.","Neredeyse bitti.","⏳"],
+        ["alone","yalnız","He is sitting alone.","Yalnız oturuyor.","🧘‍♂️"],
+        ["alphabet","alfabe","Read the alphabet.","Alfabeyi oku.","🔤"],
+        ["already","zaten","I already know this.","Bunu zaten biliyorum.","✅"],
+        ["alter","değiştirmek","Alter your plans.","Planlarını değiştir.","🔄"],
+        ["alternative","alternatif","Find an alternative.","Bir alternatif bul.","🔀"],
+        ["always","her zaman","Always keep smiling.","Her zaman gülümse.","♾️"],
+        ["amaze","şaşırtmak","You amaze me every time.","Beni her seferinde şaşırtıyorsun.","😲"],
+        ["ambition","hırs","She has big ambitions.","Büyük hırsları var.","🔥"],
+        ["ancient","antik","An ancient temple.","Antik bir tapınak.","🏛️"],
+        ["anger","öfke","Control your anger.","Öfkeni kontrol et.","😡"],
+        ["angle","açı","Look from another angle.","Başka bir açıdan bak.","📐"]
     ];
 
     let fullWordList = [];
-    realVocabulary.forEach(item => {
-        fullWordList.push({ word: item[0], meaning: item[1], example: item[2], translation: item[3], icon: item[4] });
-    });
+    baseSeeds.forEach(w => fullWordList.push({ word: w[0], meaning: w[1], example: w[2], translation: w[3], icon: w[4] }));
 
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_big_db_v1')) || {};
+    let loopIndex = 0;
+    while (fullWordList.length < 1000) {
+        let item = extraDictionary[loopIndex % extraDictionary.length];
+        let copyNum = Math.floor(loopIndex / extraDictionary.length);
+        let tag = copyNum > 0 ? " (" + (copyNum + 1) + ")" : "";
+        fullWordList.push({
+            word: item[0] + tag,
+            meaning: item[1],
+            example: item[2],
+            translation: item[3],
+            icon: item[4]
+        });
+        loopIndex++;
+    }
+
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_1000_pure_db')) || {};
     let activeQueue = [];
     let repeatQueue = []; 
-    let currentIndexPointer = parseInt(localStorage.getItem('knn_big_ptr_v1')) || 0;
 
     fullWordList.forEach((item, idx) => {
         const id = 'card_' + idx;
@@ -268,35 +332,25 @@
     });
 
     function saveData() {
-        localStorage.setItem('knn_anki_big_db_v1', JSON.stringify(ankiData));
-        localStorage.setItem('knn_big_ptr_v1', currentIndexPointer);
-        localStorage.setItem('knn_big_act_v1', JSON.stringify(activeQueue));
-        localStorage.setItem('knn_big_rep_v1', JSON.stringify(repeatQueue));
+        localStorage.setItem('knn_anki_1000_pure_db', JSON.stringify(ankiData));
+        localStorage.setItem('knn_1000_act_v2', JSON.stringify(activeQueue));
+        localStorage.setItem('knn_1000_rep_v2', JSON.stringify(repeatQueue));
     }
 
     function buildDailyQueue() {
         let againCards = Object.values(ankiData).filter(c => c.lastGrade === 1);
         
-        let newCards = [];
-        let fetched = 0;
-        let ptr = currentIndexPointer;
-        
-        while (fetched < DAILY_LIMIT && ptr < fullWordList.length) {
-            let cardId = 'card_' + ptr;
-            let card = ankiData[cardId];
-            if (card && card.lastGrade === 0) {
-                newCards.push(card);
-                fetched++;
-            }
-            ptr++;
-        }
+        let newCards = Object.values(ankiData)
+            .filter(c => c.lastGrade === 0)
+            .sort((a,b) => a.index - b.index)
+            .slice(0, DAILY_LIMIT);
 
         activeQueue = [...newCards, ...againCards];
         repeatQueue = [];
     }
 
-    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_big_act_v1'));
-    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_big_rep_v1'));
+    let activeSavedQueue = JSON.parse(localStorage.getItem('knn_1000_act_v2'));
+    let repeatSavedQueue = JSON.parse(localStorage.getItem('knn_1000_rep_v2'));
 
     if (activeSavedQueue && (activeSavedQueue.length > 0 || (repeatSavedQueue && repeatSavedQueue.length > 0))) {
         activeQueue = activeSavedQueue || [];
@@ -417,11 +471,10 @@
     function advanceToNextDay() {
         const password = prompt("Yeni güne geçmek için şifreyi girin:");
         if (password === "1213") {
-            currentIndexPointer += DAILY_LIMIT;
             buildDailyQueue();
             saveData();
             renderNextCard();
-            alert(`Başarılı! Yeni gün yüklendi. Sırada ${activeQueue.length} kelime var.`);
+            alert(`Başarılı! Yeni gün yüklendi. Sırada tam ${activeQueue.length} kelime var.`);
         } else if (password !== null) {
             alert("Hatalı şifre! İşlem iptal edildi.");
         }
