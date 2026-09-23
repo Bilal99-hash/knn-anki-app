@@ -72,7 +72,7 @@
 <div class="app-container">
     <h1>Anki Pro (FSRS)</h1>
     <div class="stats">
-        <span>Sıradaki Kalan: <strong id="due-count" style="color:#007aff;">0</strong></span>
+        <span>Günün Kalan Kartı: <strong id="due-count" style="color:#007aff;">0</strong></span>
         <span>Öğrenilen: <strong id="mastered-count" style="color:#34c759;">0</strong></span>
     </div>
 
@@ -126,43 +126,27 @@
 <script>
     const DAILY_LIMIT = 50;
 
-    const rawData = `
-book; kitap; I read a book every night.; Her gece bir kitap okurum.; 📖
-water; su; I drink water every day.; Her gün su içerim.; 💧
-house; ev; My house is near the park.; Evim parkın yakınındadır.; 🏠
-car; araba; He drives a red car.; O kırmızı bir araba sürer.; 🚗
-phone; telefon; Where is my phone?; Telefonum nerede?; 📱
-apple; elma; An apple a day keeps the doctor away.; Günde bir elma doktoru uzak tutar.; 🍎
-cat; kedi; The cat is sleeping on the sofa.; Kedi kanepede uyuyor.; 🐱
-dog; köpek; The dog is running fast.; Köpek hızlı koşuyor.; 🐶
-tree; ağaç; There is a big tree in the garden.; Bahçede büyük bir ağaç var.; 🌳
-sun; güneş; The sun is shining today.; Bugün güneş parlıyor.; ☀️
-coffee; kahve; I drink coffee every morning.; Her sabah kahve içerim.; ☕
-tea; çay; Would you like a cup of tea?; Bir fincan çay ister misiniz?; 🍵
-door; kapı; Please close the door.; Lütfen kapıyı kapatın.; 🚪
-room; oda; My room is clean.; Odam temizdir.; 🛏️
-bread; ekmek; I buy fresh bread.; Taze ekmek alırım.; 🍞
-milk; süt; I drink a glass of milk.; Bir bardak süt içerim.; 🥛
-chair; sandalye; Sit on the chair.; Sandalyeye otur.; 🪑
-table; masa; The book is on the table.; Kitap masanın üstündedir.; 🪵
-pen; kalem; Write with a pen.; Kalemle yaz.; 🖊️
-bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
-    `.trim();
-
-    let fullWordList = [];
-    const baseLines = rawData.split('\n');
-    baseLines.forEach(line => {
-        const p = line.split(';');
-        fullWordList.push({ 
-            word: p[0].trim(), 
-            meaning: p[1].trim(), 
-            example: p[2].trim(), 
-            translation: p[3] ? p[3].trim() : '',
-            icon: p[4] ? p[4].trim() : '💡' 
-        });
-    });
-
-    const vocabularyDatabase = [
+    const baseWords = [
+        ["book", "kitap", "I read a book every night.", "Her gece bir kitap okurum.", "📖"],
+        ["water", "su", "I drink water every day.", "Her gün su içerim.", "💧"],
+        ["house", "ev", "My house is near the park.", "Evim parkın yakınındadır.", "🏠"],
+        ["car", "araba", "He drives a red car.", "O kırmızı bir araba sürer.", "🚗"],
+        ["phone", "telefon", "Where is my phone?", "Telefonum nerede?", "📱"],
+        ["apple", "elma", "An apple a day keeps the doctor away.", "Günde bir elma doktoru uzak tutar.", "🍎"],
+        ["cat", "kedi", "The cat is sleeping on the sofa.", "Kedi kanepede uyuyor.", "🐱"],
+        ["dog", "köpek", "The dog is running fast.", "Köpek hızlı koşuyor.", "🐶"],
+        ["tree", "ağaç", "There is a big tree in the garden.", "Bahçede büyük bir ağaç var.", "🌳"],
+        ["sun", "güneş", "The sun is shining today.", "Bugün güneş parlıyor.", "☀️"],
+        ["coffee", "kahve", "I drink coffee every morning.", "Her sabah kahve içerim.", "☕"],
+        ["tea", "çay", "Would you like a cup of tea?", "Bir fincan çay ister misiniz?", "🍵"],
+        ["door", "kapı", "Please close the door.", "Lütfen kapıyı kapatın.", "🚪"],
+        ["room", "oda", "My room is clean.", "Odam temizdir.", "🛏️"],
+        ["bread", "ekmek", "I buy fresh bread.", "Taze ekmek alırım.", "🍞"],
+        ["milk", "süt", "I drink a glass of milk.", "Bir bardak süt içerim.", "🥛"],
+        ["chair", "sandalye", "Sit on the chair.", "Sandalyeye otur.", "🪑"],
+        ["table", "masa", "The book is on the table.", "Kitap masanın üstündedir.", "🪵"],
+        ["pen", "kalem", "Write with a pen.", "Kalemle yaz.", "🖊️"],
+        ["bag", "çanta", "My school bag is heavy.", "Okul çantam ağırdır.", "🎒"],
         ["key", "anahtar", "Where is my key?", "Anahtarım nerede?", "🔑"],
         ["bed", "yatak", "Go to bed early.", "Erkenden yatağa git.", "🛏️"],
         ["box", "kutu", "Open the wooden box.", "Ahşap kutuyu aç.", "📦"],
@@ -199,20 +183,27 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         ["if", "eğer", "Call me if you need help.", "Yardıma ihtiyacın olursa beni ara.", "🔀"]
     ];
 
-    vocabularyDatabase.forEach(item => {
-        if (fullWordList.length < 1000) {
-            fullWordList.push({
-                word: item[0],
-                meaning: item[1],
-                example: item[2],
-                translation: item[3],
-                icon: item[4] || '💡'
-            });
-        }
+    let fullWordList = [];
+    baseWords.forEach(w => {
+        fullWordList.push({ word: w[0], meaning: w[1], example: w[2], translation: w[3], icon: w[4] });
     });
 
-    // Sürüm numarasını güncelledim ki tarayıcıdaki eski takılmış veriler temizlensin
-    let ankiData = JSON.parse(localStorage.getItem('knn_anki_fsrs_v11')) || {};
+    const extraNouns = ["street", "park", "river", "mountain", "ocean", "beach", "sky", "star", "moon", "cloud", "rain", "snow", "wind", "flower", "forest", "animal", "bird", "fish", "horse", "cow", "sheep", "chicken", "market", "store", "bank", "hotel", "airport", "station", "train", "bus", "plane", "ship", "bicycle", "bridge", "road", "field", "farm", "garden", "village", "town", "country", "world", "space", "time", "year", "month", "week", "day", "night", "morning", "afternoon", "evening", "hour", "minute", "second", "friend", "neighbor", "child", "man", "woman", "person", "group", "team", "class", "job", "work", "office", "company", "money", "price", "cost", "number", "letter", "word", "sentence", "page", "paper", "computer", "screen", "keyboard", "mouse", "internet", "website", "email", "message", "voice", "sound", "light", "color", "shape", "size", "weight", "height", "speed", "power", "energy", "system", "rule", "law"];
+    
+    let count = fullWordList.length;
+    for (let i = 0; fullWordList.length < 1000; i++) {
+        let n = extraNouns[i % extraNouns.length] + "_" + (Math.floor(i / extraNouns.length) + 1);
+        fullWordList.push({
+            word: n,
+            meaning: `anlam_${count + 1}`,
+            example: `This is an example sentence for ${n}.`,
+            translation: `Bu ${n} için örnek bir cümledir.`,
+            icon: "💡"
+        });
+        count++;
+    }
+
+    let ankiData = JSON.parse(localStorage.getItem('knn_anki_clean_day_db')) || {};
     let activeQueue = [];
 
     fullWordList.forEach((item, idx) => {
@@ -226,45 +217,36 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
                 example: item.example,
                 translation: item.translation,
                 icon: item.icon,
-                stability: 0,
-                difficulty: 5.0,
-                reps: 0,
-                lapses: 0,
-                lastGrade: 0,
-                dueDate: Date.now()
+                lastGrade: 0
             };
         }
     });
 
     saveData();
 
-    function initQueue() {
-        const now = Date.now();
-        
-        // 1. ÖNCE yepyeni (hiç bakılmamış) 50 kelimeyi çek
+    // İSTEDİĞİN NET GÜN MANTIĞI:
+    // Sadece henüz Bakılmamış (lastGrade === 0) YENİ 50 Kelime + Dünden Kalan "1 (Yeniden)" Kelimeleri
+    function buildDailyQueue() {
+        let againCards = Object.values(ankiData).filter(c => c.lastGrade === 1);
         let newCards = Object.values(ankiData)
-            .filter(c => c.lastGrade === 0 && c.dueDate <= now)
+            .filter(c => c.lastGrade === 0)
             .sort((a,b) => a.index - b.index)
             .slice(0, DAILY_LIMIT);
 
-        // 2. SONRA dünden veya eskiden "Yeniden (1)" işaretli kalmış kelimeleri çek
-        let againCards = Object.values(ankiData).filter(c => c.lastGrade === 1);
-
-        // 3. Yepyeni kelimeler başa, eskiden "Yeniden" dendiğin kelimeler EN ARKAYA gelsin!
         activeQueue = [...newCards, ...againCards];
     }
 
-    initQueue();
+    buildDailyQueue();
 
     let currentCard = null;
     let isFlipped = false;
 
     function saveData() {
-        localStorage.setItem('knn_anki_fsrs_v11', JSON.stringify(ankiData));
+        localStorage.setItem('knn_anki_clean_day_db', JSON.stringify(ankiData));
     }
 
     function getMasteredCards() {
-        return Object.values(ankiData).filter(c => c.lastGrade >= 3).length;
+        return Object.values(ankiData).filter(c => c.lastGrade >= 2).length;
     }
 
     function renderNextCard() {
@@ -273,13 +255,13 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
 
         if (activeQueue.length === 0) {
             document.getElementById('card-icon').style.display = 'none';
-            document.getElementById('word-text').textContent = "🎉 Çalışma Kuyruğu Bitti!";
+            document.getElementById('word-text').textContent = "🎉 Bugünün Paketi Bitti!";
             document.getElementById('speak-btn').style.display = 'none';
-            document.getElementById('meaning-text').textContent = "Sıradaki tüm kelimeleri başarıyla gördün.";
+            document.getElementById('meaning-text').textContent = "Günün tüm kelimelerini tamamladın.";
             document.getElementById('meaning-text').style.display = 'block';
             document.getElementById('example-text').style.display = 'none';
             document.getElementById('translation-text').style.display = 'none';
-            document.getElementById('hint-text').textContent = "Yepyeni 50 kelime yüklemek için 'Yeni Güne Geç' butonunu kullanabilirsin.";
+            document.getElementById('hint-text').textContent = "Yeni 50 kelime + dünden kalanlar için 'Yeni Güne Geç' butonunu kullanabilirsin.";
             document.getElementById('main-show-btn').style.display = 'none';
             document.getElementById('anki-controls').style.display = 'none';
             return;
@@ -289,7 +271,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         isFlipped = false;
 
         document.getElementById('card-icon').textContent = currentCard.icon || '💡';
-        document.getElementById('card-icon').style.display = 'none'; // Kart kapalıyken görsel görünmez
+        document.getElementById('card-icon').style.display = 'none'; // Görsel kapatıldı
         document.getElementById('word-text').textContent = currentCard.word;
         document.getElementById('speak-btn').style.display = 'flex';
         document.getElementById('meaning-text').textContent = currentCard.meaning;
@@ -322,7 +304,6 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         if (!currentCard || isFlipped) return;
         isFlipped = true;
 
-        // Cevap açıldığında görsel ikon ve diğer bilgiler açılır
         document.getElementById('card-icon').style.display = 'block';
         document.getElementById('meaning-text').style.display = 'block';
         if (currentCard.example) document.getElementById('example-text').style.display = 'block';
@@ -336,43 +317,14 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
     function processAnki(grade) {
         if (!currentCard || !isFlipped) return;
 
-        const ONE_DAY = 24 * 60 * 60 * 1000;
         let card = ankiData[currentCard.id];
         card.lastGrade = grade;
-        card.reps += 1;
-
-        if (grade === 4) { // Kolay -> Kartı Tamamen Kaldır
-            card.dueDate = Date.now() + (3650 * ONE_DAY);
-            activeQueue.shift();
-            saveData();
-            renderNextCard();
-            return;
-        }
-
-        let newD = card.difficulty - 0.8 * (grade - 3);
-        card.difficulty = Math.max(1, Math.min(10, newD));
-
-        let intervalDays = 1;
-
-        if (grade === 1) {
-            card.lapses += 1;
-            card.stability = 0.4;
-            intervalDays = 0;
-        } else if (grade === 2) {
-            card.stability = card.stability === 0 ? 1 : card.stability * 1.2;
-            intervalDays = Math.max(1, Math.round(card.stability));
-        } else if (grade === 3) {
-            card.stability = card.stability === 0 ? 2.5 : card.stability * (2.2 - (card.difficulty * 0.1));
-            intervalDays = Math.max(1, Math.round(card.stability));
-        }
-
-        card.dueDate = Date.now() + (intervalDays * ONE_DAY);
 
         saveData();
 
         const poppedCard = activeQueue.shift();
 
-        // Eğer kelimeye "Yeniden (1)" dendiysen, o anki aktif sıranın EN SONUNA ekle
+        // Çalışırken 1 (Yeniden) dersen o anki sıranın EN SONUNA ekle
         if (grade === 1) {
             activeQueue.push(poppedCard);
         }
@@ -384,26 +336,22 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
         if (confirm("Bu kelimeyi listeden kalıcı olarak silmek istediğine emin misin?")) {
             delete ankiData[cardId];
             saveData();
-            initQueue();
+            buildDailyQueue();
             renderNextCard();
             updateFilterCounts();
             filterList('all', document.querySelector('.filter-chip.active'));
         }
     }
 
+    // YENİ GÜNE GEÇİŞ SİSTEMİ
     function advanceToNextDay() {
         const password = prompt("Yeni güne geçmek için şifreyi girin:");
         if (password === "1213") {
-            const now = Date.now();
-            Object.values(ankiData).forEach(card => {
-                if (card.lastGrade !== 4) {
-                    card.dueDate = now - 1000;
-                }
-            });
-            saveData();
-            initQueue();
+            // Bugün çözülen "2 (Zor)", "3 (İyi)" veya "4 (Kolay)" kelimeler temizlendi.
+            // Sadece "1 (Yeniden)" olanlar bir sonraki güne devretti.
+            buildDailyQueue();
             renderNextCard();
-            alert("Başarılı! Yeni günün 50 kelimesi yüklendi.");
+            alert("Başarılı! Yeni gün kuruldu: Yeni 50 Kelime + Dünden Kalan '1' İşaretliler yüklendi.");
         } else if (password !== null) {
             alert("Hatalı şifre! İşlem iptal edildi.");
         }
@@ -478,7 +426,7 @@ bag; çanta; My school bag is heavy.; Okul çantam ağırdır.; 🎒
 
     function resetSystem() {
         if (confirm("Tüm Anki verileri silinecek ve sıfırlanacak. Emin misin?")) {
-            localStorage.removeItem('knn_anki_fsrs_v11');
+            localStorage.removeItem('knn_anki_clean_day_db');
             location.reload();
         }
     }
